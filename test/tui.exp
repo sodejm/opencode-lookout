@@ -1,0 +1,131 @@
+# Run only against the isolated fixture server. Never submit a model prompt.
+set timeout 25
+set url [lindex $argv 0]
+set session [lindex $argv 1]
+set transcript [lindex $argv 2]
+set narrow [lindex $argv 3]
+log_user 0
+log_file -a -noappend $transcript
+spawn -noecho opencode --server $url --session $session
+if {$narrow == "1"} {
+  stty rows 36 columns 80 < $spawn_out(slave,name)
+  # Drain startup output and wait for the prompt; a fixed sleep can leave the
+  # child blocked on its PTY before keyboard input is initialized.
+  expect {
+    -re {Connect a provider} {}
+    eof {exit 6}
+    timeout {exit 2}
+  }
+} else {
+  stty rows 52 columns 150 < $spawn_out(slave,name)
+  expect {
+    -re {Control Center} {}
+    eof {exit 6}
+    timeout {exit 2}
+  }
+}
+after 2500
+send -- "/control-center skill"
+after 500
+send -- "\r"
+expect {
+  -re {Search IDs, names, descriptions, models} {}
+  timeout {exit 3}
+}
+after 800
+# Exercise the category and state actions, not just the slash-command argument.
+send -- "\006"
+expect {
+  -re {All categories} {}
+  timeout {exit 13}
+}
+send -- "Skills"
+after 300
+send -- "\r"
+expect {
+  -re {Search IDs, names, descriptions, models} {}
+  timeout {exit 14}
+}
+send -- "\023"
+expect {
+  -re {Controllable here} {}
+  timeout {exit 15}
+}
+send -- "Controllable"
+after 300
+send -- "\r"
+expect {
+  -re {Search IDs, names, descriptions, models} {}
+  timeout {exit 16}
+}
+send -- "fixture"
+after 500
+send -- "\r"
+expect {
+  -re {Pin to sidebar} {}
+  timeout {exit 4}
+}
+send -- "\r"
+expect {
+  -re {Auto-invocation} {}
+  timeout {exit 5}
+}
+send -- "\033\[27u"
+after 800
+# Reopen explicitly after the one-shot inspector closes.
+send -- "/control-center skill"
+after 500
+send -- "\r"
+expect {
+  -re {Search IDs, names, descriptions, models} {}
+  timeout {exit 11}
+}
+after 400
+send -- "\r"
+expect {
+  -re {Pin to sidebar} {}
+  timeout {exit 9}
+}
+after 300
+send -- "\033\[B\033\[B"
+after 500
+send -- "\r"
+expect {
+  -re {Apply [Gg]lobally} {}
+  timeout {exit 7}
+}
+# Cancel first: the UI must not apply a change just because it was previewed.
+send -- "\033\[27u"
+after 800
+set cli [file join [file dirname [file dirname [info script]]] bin control-center.mjs]
+set status [exec node $cli status]
+if {![string match {*Owned restrictions: 0*} $status]} {exit 17}
+send -- "/control-center skill"
+after 500
+send -- "\r"
+expect {
+  -re {Search IDs, names, descriptions, models} {}
+  timeout {exit 12}
+}
+after 400
+send -- "\r"
+expect {
+  -re {Pin to sidebar} {}
+  timeout {exit 10}
+}
+after 300
+send -- "\033\[B\033\[B"
+after 500
+send -- "\r"
+expect {
+  -re {Apply [Gg]lobally} {}
+  timeout {exit 8}
+}
+send -- "\r"
+after 1500
+send -- "\033\[27u"
+after 300
+send -- "\003"
+after 200
+send -- "\003"
+expect eof

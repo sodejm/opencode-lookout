@@ -11,7 +11,10 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test"
+    "format:check": "prettier --check 'src/**/*.{mjs,ts,tsx}' 'test/**/*.mjs' 'bin/*.mjs' '*.json'",
+    "test:integration": "node test/integration.mjs",
+    "test:tui": "CC_TUI=1 node test/integration.mjs",
+    "check": "npm run format:check && npm run typecheck && npm test"
   },
   "dependencies": {
     "jsonc-parser": "3.3.1"
@@ -24,7 +27,7 @@
     "@opentui/solid": "0.8.0",
     "@types/node": "24.10.0",
     "prettier": "3.6.2",
-    "solid-js": "1.9.12",
+    "solid-js": "1.9.16",
     "typescript": "5.9.3"
   }
 }

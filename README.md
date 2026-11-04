@@ -5,8 +5,8 @@ OpenCode's terminal interface. The extension appends a compact section to the
 existing sidebar. It does not replace Context or MCP status.
 
 Requires OpenCode **2.2.5** and Node.js **22 or later**. The package is private and
-local; it is not published. Install development dependencies with `npm ci
---ignore-scripts`. Do not use the legacy `@opencode-ai/plugin` API for this package.
+local; it is not published. Install development dependencies with
+`npm ci --ignore-scripts`. Do not use the legacy `@opencode-ai/plugin` API for this package.
 
 ## Load or unload
 
@@ -53,6 +53,10 @@ The catalog uses OpenCode's native searchable dialogs:
 | Inspect an item or change it | Enter |
 | Return or close | Escape |
 
+Selecting an item opens its action menu. **Show details** opens a read-only
+inspector; Escape closes it back to the prompt. Run `/control-center` again to
+browse another item.
+
 Sidebar headings expand or collapse on click. Each expanded category shows up to
 three entries. Select an item and choose **Pin to sidebar** to choose which entries
 appear. Pins and collapsed sections are terminal presentation preferences; they
@@ -61,7 +65,7 @@ and action through `/control-center`, even when the terminal hides the sidebar.
 
 ## What the controls mean
 
-All changes require a preview and **Apply globally** confirmation. They affect
+Resource changes require a preview and **Apply Globally** confirmation. They affect
 every project using that server, not just the current conversation. Wait for other
 work to finish before changing resources it may use.
 
@@ -118,7 +122,15 @@ if normal restore cannot parse it.
 ```sh
 npm ci --ignore-scripts
 make check
+npm run test:integration
+npm run test:tui
+CC_TUI=1 CC_NARROW=1 CC_THEME=tokyonight npm run test:integration
 ```
+
+The integration checks require the `opencode` executable. Terminal checks also
+require `/usr/bin/expect`. They use a temporary HOME and deny provider and tool
+use. Set `CC_KEEP_FIXTURE=1` to retain a failed fixture for local inspection; do not
+share its credential files or raw terminal transcript.
 
 See [Architecture](docs/ARCHITECTURE.md) for module boundaries and configuration
 ownership, [Threat model](docs/THREAT_MODEL.md) for safety limits, and

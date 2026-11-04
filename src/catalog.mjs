@@ -11,7 +11,12 @@ export const KINDS = [
   "provider",
   "model",
 ];
-/** Remove terminal control characters and bound untrusted display strings. */
+/**
+ * Remove terminal control characters and bound untrusted display strings.
+ * @param {unknown} value Untrusted display value.
+ * @param {number} limit Maximum number of UTF-16 code units to display.
+ * @returns {string} Plain text with no C0/C1 control characters.
+ */
 export function text(value, limit = 400) {
   return String(value ?? "")
     .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "")
@@ -35,6 +40,10 @@ function exact(id) {
  * Produce a display allowlist, never a copy of an API response. In particular,
  * omit prompts, skill bodies, credentials, request headers, and MCP commands.
  * Management is limited to resources explicitly sourced from this user's config.
+ * @param {string} kind Catalog category from KINDS.
+ * @param {Array<any>} entries Public V2 records for that category.
+ * @param {{configDir:string,home:string,config?:any}} scope Trusted local source boundaries.
+ * @returns {Array<import('./types').Row>} Sanitized display and management metadata.
  */
 export function normalize(kind, entries, { configDir, home, config = {} }) {
   const roots = [
@@ -129,7 +138,12 @@ export function normalize(kind, entries, { configDir, home, config = {} }) {
     return row;
   });
 }
-/** Restore disabled rows that policy filtering removes from the live catalog. */
+/**
+ * Restore disabled rows that policy filtering removes from the live catalog.
+ * @param {Array<import('./types').Row>} rows Current normalized inventory.
+ * @param {{kind:string,id:string}[]} restrictions Validated owned config entries.
+ * @returns {Array<import('./types').Row>} Inventory including re-enable controls.
+ */
 export function mergeOwned(rows, restrictions) {
   const result = rows.map((r) => ({ ...r, details: [...r.details] }));
   for (const { kind, id } of restrictions) {
@@ -159,7 +173,12 @@ export function mergeOwned(rows, restrictions) {
   }
   return result;
 }
-/** Filter by kind, state, and literal search terms; never evaluate a user regex. */
+/**
+ * Filter by kind, state, and literal search terms; never evaluate a user regex.
+ * @param {Array<import('./types').Row>} rows Normalized inventory.
+ * @param {{kind?:string,state?:string,query?:string}} options Composable filters.
+ * @returns {Array<import('./types').Row>} Stable label/ID order, owned entries first.
+ */
 export function filterRows(
   rows,
   { kind = "all", state = "all", query = "" } = {},

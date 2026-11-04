@@ -27,6 +27,14 @@ not exposed as model tools. No credential APIs are used.
 | Disabling policy enforcement | Built-in plugins and Control Center are read-only in the UI | Config and catalog tests |
 | Broken UI prevents recovery | External load/unload/status/restore commands; no automatic discovery | Lifecycle tests |
 
+The live fixture validates filtering and recovery for all three controllable
+resource kinds. It runs with temporary HOME/XDG directories and denies provider
+and tool use to keep keyboard-test mistakes from starting inference or shell work.
+Terminal logs can contain local paths and session metadata; retained fixtures are
+local debugging artifacts, not shareable evidence. See [Validation](VALIDATION.md)
+for the tested runtime and remaining coverage limits. This increment adds no new
+production credential access, RPC methods, file targets, or resource kinds.
+
 ## Limits and review
 
 - Global changes can affect active work in other sessions. The preview warns about

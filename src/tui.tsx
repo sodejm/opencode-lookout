@@ -150,6 +150,9 @@ export default Plugin.define({
     }
 
     async function detail(row: Row) {
+      // Let the previous dialog finish key dispatch and restore focus first.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      if (stopped) return;
       const choice = await ctx.ui.dialog.select({
         title: `${titles[row.kind]} · ${text(row.id)}`,
         options: [
@@ -178,20 +181,36 @@ export default Plugin.define({
       if (choice === "pin") await pin(row);
       if (choice === "toggle") await toggle(row);
       if (choice === "details")
-        await ctx.ui.dialog.alert({
-          title: text(row.label),
-          message: [
-            `ID: ${text(row.id)}`,
-            `Status: ${row.status}`,
-            `Source: ${row.source}`,
-            row.description,
-            ...row.details,
-            "",
-            row.reason,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      if (choice === "details" && !stopped) {
+        const lines = [
+          `ID: ${text(row.id)}`,
+          `Status: ${row.status}`,
+          `Source: ${row.source}`,
+          row.description,
+          ...row.details,
+          "",
+          row.reason,
+        ].filter(Boolean);
+        // A close callback gives the read-only inspector an explicit lifecycle.
+        await new Promise<void>((resolve) => {
+          ctx.ui.dialog.set({ size: "large" });
+          ctx.ui.dialog.show(
+            () => (
+              <box flexDirection="column" padding={2} gap={1}>
+                <text fg={ctx.theme.text.base}>
+                  <b>{text(row.label)}</b>
+                </text>
+                <For each={lines}>
+                  {(line) => <text fg={ctx.theme.text.base}>{line}</text>}
+                </For>
+                <text fg={ctx.theme.text.muted}>Escape to return</text>
+              </box>
+            ),
+            resolve,
+          );
         });
+      }
     }
 
     /** Native searchable dialogs keep selection, keyboard focus, and styling consistent. */
@@ -200,6 +219,8 @@ export default Plugin.define({
         state = "all";
       await refresh();
       while (!stopped) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        if (stopped) break;
         let action = "";
         const rows = filterRows(snapshot().rows, { kind, state }) as Row[];
         const selected = await ctx.ui.dialog.select<Row>({
@@ -249,8 +270,10 @@ export default Plugin.define({
             },
           ],
         });
-        if (selected) await detail(selected);
-        else if (action === "category")
+        if (selected) {
+          await detail(selected);
+          return;
+        } else if (action === "category")
           kind =
             (await ctx.ui.dialog.select({
               title: "Category",
@@ -341,6 +364,12 @@ export default Plugin.define({
     }));
 
     function Sidebar() {
+      const selectedAgent = () => {
+        const route = ctx.ui.router.current();
+        return route.type === "session"
+          ? ctx.data.session.get(route.sessionID)?.agent
+          : undefined;
+      };
       const visible = (kind: string) => {
         const rows = snapshot().rows.filter((row) => row.kind === kind);
         const pinned = rows.filter((row) =>
@@ -349,9 +378,17 @@ export default Plugin.define({
         return (
           pinned.length
             ? pinned
-            : filterRows(rows).filter(
-                (row: Row) => kind !== "plugin" || row.source !== "builtin",
-              )
+            : filterRows(rows)
+                .filter(
+                  (row: Row) =>
+                    (kind !== "plugin" || row.source !== "builtin") &&
+                    row.status !== "hidden",
+                )
+                .sort(
+                  (a: Row, b: Row) =>
+                    Number(b.kind === "agent" && b.id === selectedAgent()) -
+                    Number(a.kind === "agent" && a.id === selectedAgent()),
+                )
         ).slice(0, 3) as Row[];
       };
       return (
@@ -364,7 +401,7 @@ export default Plugin.define({
               })
             }
           >
-            <b>{preferences.collapsed ? "›" : "⌄"} Control Center</b>
+            <b>{preferences.collapsed ? "▶" : "▼"} Control Center</b>
           </text>
           <Show when={!preferences.collapsed}>
             <Show when={loading()}>
@@ -388,9 +425,11 @@ export default Plugin.define({
                       })
                     }
                   >
-                    {preferences.expanded.includes(kind) ? "⌄" : "›"}{" "}
-                    {titles[kind]}{" "}
-                    {snapshot().rows.filter((r) => r.kind === kind).length}
+                    {preferences.expanded.includes(kind) ? "▼" : "▶"}{" "}
+                    <b>{titles[kind]}</b>{" "}
+                    <span style={{ fg: ctx.theme.text.muted }}>
+                      {snapshot().rows.filter((r) => r.kind === kind).length}
+                    </span>
                   </text>
                   <Show when={preferences.expanded.includes(kind)}>
                     <For each={visible(kind)}>
@@ -400,7 +439,12 @@ export default Plugin.define({
                           onMouseDown={() => void detail(row)}
                         >
                           {"  "}
-                          {row.owned ? "○" : "·"} {text(row.label, 28)}
+                          {row.owned
+                            ? "○"
+                            : row.kind === "agent" && row.id === selectedAgent()
+                              ? "›"
+                              : "•"}{" "}
+                          {text(row.label, 28)}
                         </text>
                       )}
                     </For>

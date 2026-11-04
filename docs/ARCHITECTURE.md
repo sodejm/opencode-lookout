@@ -2,8 +2,9 @@
 
 ## Boundaries
 
-`src/tui.tsx` contributes to `sidebar.content` and uses native select, confirmation,
-and detail dialogs. It uses semantic theme colors, not hardcoded Carbonfox colors
+`src/tui.tsx` contributes to `sidebar.content` and uses native select and confirmation
+dialogs plus a read-only inspector in the host dialog container. It uses semantic
+theme colors, not hardcoded Carbonfox colors
 or private host renderables. The UI requests a location-scoped inventory through
 `src/rpc.ts`. It never writes configuration or executes a shell command.
 
@@ -12,8 +13,9 @@ the UI keeps stale data and disables controls rather than infer an empty catalog
 Inventory normalization in `src/catalog.mjs` copies only display fields. It does
 not serialize prompts, skill bodies, MCP commands, provider headers, or credentials.
 
-`src/controller.mjs` validates a resource against a fresh inventory before preview
-and apply. A random, single-use token binds the request to a file fingerprint for
+`src/controller.mjs` validates disable requests against a fresh inventory before
+preview and apply. Enable requests require an owned restriction, even when the
+resource has disappeared from the catalog. A random, single-use token binds the request to a file fingerprint for
 60 seconds. A new preview invalidates the previous preview in that instance.
 `src/config.mjs` owns exact-ID entries in marked array regions. Enabling removes
 an owned entry; it never creates an overriding allow rule.
