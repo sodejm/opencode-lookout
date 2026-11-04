@@ -46,6 +46,21 @@ The source diff against pre-edit backups contains comments only. The Node runner
 reports the existing unspecified-module-type warning for `usage-router.js`;
 changing the global package type is outside this documentation change.
 
+## Personal installation
+
+The normal server loaded one active `personal.control-center` plugin with server,
+TUI, and RPC parts declared. Its snapshot returned all seven catalog categories
+without errors. An immediate check after the first load ran before the config
+watcher finished; the subsequent check confirmed the active plugin.
+
+The external unload/load cycle also passed on the normal server: unload removed
+the plugin and its RPC, and load restored the RPC. The cycle restored the exact
+loaded configuration bytes. The initial installation was checked against the
+lifecycle transformation and preserved all unrelated settings and restrictions.
+The extension was left loaded with zero owned resource restrictions. No personal
+resource was disabled for this check. Live rendering in the user's existing TUI
+still needs confirmation; the automated terminal evidence above used fixtures.
+
 ## Limits
 
 - Terminal evidence is a PTY workflow, not a pixel-level visual or accessibility
