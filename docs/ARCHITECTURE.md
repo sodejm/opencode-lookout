@@ -19,6 +19,16 @@ the UI keeps stale data and disables controls rather than infer an empty catalog
 Inventory normalization in `src/catalog.mjs` copies only display fields. It does
 not serialize prompts, skill bodies, MCP commands, provider headers, or credentials.
 
+`src/plugin-description.mjs` enriches plugin rows from their exact local source.
+Directories use their own `package.json` description; single files use only a
+leading JSDoc `@description` tag. Reads are bounded to 64 KiB for manifests and a
+16 KiB source prefix. Only the sanitized description (at most 400 UTF-16 code
+units) reaches the UI. Metadata failures return `missing description` without
+failing the catalog. There is no code evaluation, ancestor search, registry
+request, or plugin-ID lookup table. Refresh rereads metadata rather than retaining
+an outdated description cache. This tag is a Lookout convention, not an OpenCode
+SDK field.
+
 `src/controller.mjs` validates disable requests against a fresh inventory before
 preview and apply. Enable requests require an owned restriction, even when the
 resource has disappeared from the catalog. A random, single-use token binds the request to a file fingerprint for

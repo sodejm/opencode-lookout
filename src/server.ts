@@ -1,4 +1,6 @@
+/** @description A native-style resource sidebar with reversible local controls. */
 import { Plugin } from "@opencode/plugin";
+import type { PluginInfo } from "@opencode/client";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { access } from "node:fs/promises";
@@ -6,6 +8,7 @@ import { ControlCenter } from "./rpc";
 import { ID, owned, parseConfig } from "./config.mjs";
 import { Controller, readConfig } from "./controller.mjs";
 import { KINDS, normalize, mergeOwned } from "./catalog.mjs";
+import { pluginDescription } from "./plugin-description.mjs";
 import type { ChangeRequest, Row, Snapshot } from "./types";
 
 /** Never return filesystem errors with paths, or provider errors with payloads. */
@@ -67,10 +70,19 @@ export default Plugin.define({
         sources.map((source) => source.list()),
       );
       const rows: Row[] = [];
-      results.forEach((result, index) => {
+      for (const [index, result] of results.entries()) {
         const kind = KINDS[index];
         if (result.status === "fulfilled") {
           const batch = normalize(kind, result.value.data, scope) as Row[];
+          if (kind === "plugin") {
+            await Promise.all(
+              batch.map(async (row, index) => {
+                row.description = await pluginDescription(
+                  (result.value.data[index] as PluginInfo).source,
+                );
+              }),
+            );
+          }
           if (!disposed) cache.set(kind, batch);
           rows.push(...batch);
         } else {
@@ -85,7 +97,7 @@ export default Plugin.define({
             })),
           );
         }
-      });
+      }
       const merged = mergeOwned(rows, restrictions) as Row[];
       if (errors.length)
         merged.forEach((r) => {

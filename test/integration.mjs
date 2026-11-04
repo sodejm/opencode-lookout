@@ -27,7 +27,11 @@ await writeFile(
 );
 await writeFile(
   join(configDir, "plugins/widget.js"),
-  `export default {id:'fixture.widget',setup(){}};\n`,
+  `/** @description Offline fixture plugin. */\nexport default {id:'fixture.widget',setup(){}};\n`,
+);
+await writeFile(
+  join(configDir, "plugins/undocumented.js"),
+  `export default {id:'fixture.undocumented',setup(){}};\n`,
 );
 const original = {
   $schema: "https://opencode.ai/config.json",
@@ -140,6 +144,18 @@ try {
     60_000,
   );
   assert.deepEqual(first.errors, []);
+  assert.equal(
+    first.rows.find((r) => r.id === "fixture.widget").description,
+    "Offline fixture plugin.",
+  );
+  assert.notEqual(
+    first.rows.find((r) => r.id === "personal.control-center").description,
+    "missing description",
+  );
+  assert.equal(
+    first.rows.find((r) => r.id === "fixture.undocumented").description,
+    "missing description",
+  );
   for (const [kind, id] of [
     ["skill", "fixture-skill"],
     ["mcp", "fixture"],
@@ -237,6 +253,16 @@ try {
       assert(
         terminal.includes("Connected"),
         "native MCP status remains visible",
+      );
+    if (process.env.CC_NARROW !== "1")
+      assert(
+        terminal.includes("Offline fixture plugin."),
+        "sidebar description comes from the fixture plugin file",
+      );
+    if (process.env.CC_NARROW !== "1")
+      assert(
+        terminal.includes("missing description"),
+        "sidebar uses the exact fallback for undocumented plugins",
       );
     const completed = await request(`/api/session/${id}`);
     assert.equal(

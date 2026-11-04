@@ -98,6 +98,21 @@ also has an arrow. Green reflects catalog availability, not verified provider
 authentication, quota, or successful execution. Open an item's details for its
 text status.
 
+Plugin rows include a description from their own files. For local plugin
+directories, Lookout reads the `description` string in that directory's
+`package.json`. For single-file plugins, it reads a leading JSDoc tag:
+
+```js
+/** @description Explain what this plugin does. */
+export default { id: "example.plugin", setup() {} };
+```
+
+If metadata is missing, unreadable, or unsupported, the row says
+`missing description`. Lookout does not execute plugin code, search parent
+packages, fetch registry metadata, or keep a hardcoded description list. Packaged
+or built-in plugins whose catalog entry has no local source path use the fallback.
+Descriptions are truncated in the sidebar; open **Show details** to read more.
+
 ## What the controls mean
 
 Resource changes require a preview and **Apply Globally** confirmation. They affect

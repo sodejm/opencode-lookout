@@ -450,17 +450,30 @@ export default Plugin.define({
                   <Show when={preferences.expanded.includes(kind)}>
                     <For each={visible(kind)}>
                       {(row) => (
-                        <text
-                          fg={ctx.theme.text.base}
-                          onMouseDown={() => void detail(row)}
-                        >
-                          {"  "}
-                          <span style={{ fg: dot(row) }}>•</span>{" "}
-                          {row.kind === "agent" && row.id === selectedAgent()
-                            ? "› "
-                            : ""}
-                          {text(row.label, 28)}
-                        </text>
+                        <box flexDirection="column">
+                          <text
+                            fg={ctx.theme.text.base}
+                            onMouseDown={() => void detail(row)}
+                          >
+                            {"  "}
+                            <span style={{ fg: dot(row) }}>•</span>{" "}
+                            {row.kind === "agent" && row.id === selectedAgent()
+                              ? "› "
+                              : ""}
+                            {text(row.label, 28)}
+                          </text>
+                          <Show when={row.kind === "plugin"}>
+                            <text
+                              fg={ctx.theme.text.muted}
+                              wrapMode="none"
+                              truncate
+                              onMouseDown={() => void detail(row)}
+                            >
+                              {"    "}
+                              {row.description || "missing description"}
+                            </text>
+                          </Show>
+                        </box>
                       )}
                     </For>
                     <text

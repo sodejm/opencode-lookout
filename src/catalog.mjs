@@ -129,6 +129,8 @@ export function normalize(kind, entries, { configDir, home, config = {} }) {
         `Auto-invocation: ${item.autoinvoke === false ? "off" : "on when described"}`,
       ];
     } else if (kind === "plugin") {
+      // The server replaces this only with metadata read from the plugin's files.
+      row.description = "missing description";
       row.source = text(item.source?.type ?? "unknown");
       row.status = item.state?.status ?? "unknown";
       row.details = [
@@ -188,7 +190,7 @@ export function mergeOwned(rows, restrictions) {
         kind,
         id,
         label: text(id),
-        description: "",
+        description: kind === "plugin" ? "missing description" : "",
         status: "not listed",
         source: "Control Center restriction",
         details: [],

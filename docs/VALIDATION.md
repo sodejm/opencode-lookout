@@ -5,7 +5,7 @@
 Validated locally on November 3, 2026, with OpenCode 2.2.5, Node.js 26.12.1, and
 macOS. `make check` runs Prettier, relative documentation-link checks, TypeScript
 checking, and Node's native test runner.
-All 17 tests pass. Current tests
+All 21 tests pass. Current tests
 cover catalog field filtering, literal searches, disabled-item recovery, ownership
 markers, reversible controls, malformed config, duplicate keys, protected IDs,
 stale and replayed previews, external file edits, symlinks, concurrent locks,
@@ -14,6 +14,9 @@ Display tests cover native status-color roles, stale-state warnings, and removal
 of MCP from Control Center views without changing legacy recovery rows. Both
 terminal sizes passed again after this change; the wide-terminal check also
 confirms native MCP status remains visible and no duplicate MCP heading appears.
+Description tests cover source-manifest updates, explicit single-file JSDoc,
+missing/invalid/oversized metadata, symlinks, sanitization, and bounded output.
+The terminal fixture includes both a described plugin and one without metadata.
 
 ## Runtime validation
 

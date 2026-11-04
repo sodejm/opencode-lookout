@@ -32,8 +32,16 @@ resource kinds. It runs with temporary HOME/XDG directories and denies provider
 and tool use to keep keyboard-test mistakes from starting inference or shell work.
 Terminal logs can contain local paths and session metadata; retained fixtures are
 local debugging artifacts, not shareable evidence. See [Validation](VALIDATION.md)
-for the tested runtime and remaining coverage limits. This increment adds no new
-production credential access, RPC methods, file targets, or resource kinds.
+for the tested runtime and remaining coverage limits.
+
+Plugin descriptions add read-only access to the exact local plugin source from
+the server catalog, or its direct package manifest. File reads are bounded and
+reject non-regular files and final-component symlinks. Plugin source is never
+executed for metadata extraction. Only an explicit description field/tag is
+returned, sanitized for terminal control characters; errors do not expose paths.
+The catalog, not an RPC caller, selects the source path. An installed malicious
+plugin already has the server user's authority; these checks are not a sandbox
+against that user or plugin. Description metadata is display text, not instructions.
 
 ## Limits and review
 
