@@ -19,7 +19,7 @@ if {$narrow == "1"} {
 } else {
   stty rows 52 columns 150 < $spawn_out(slave,name)
   expect {
-    -re {Control Center} {}
+    -re {Lookout} {}
     eof {exit 6}
     timeout {exit 2}
   }

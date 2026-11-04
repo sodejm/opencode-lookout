@@ -37,6 +37,14 @@ production credential access, RPC methods, file targets, or resource kinds.
 
 ## Limits and review
 
+Public contribution and CI are additional trust boundaries. GitHub Actions run
+untrusted pull-request code without repository write permissions or project
+secrets. Checkout credentials are not persisted, action revisions are pinned, and
+dependency install scripts are disabled. Dependabot proposes updates; it does not
+merge or publish them. Human review must check runtime dependency compatibility.
+Dependency licenses and notices must be reviewed before redistributing bundled
+artifacts; this repository does not publish bundles.
+
 The status-dot and MCP-display change affects presentation only. It adds no RPC,
 configuration write, credential access, or trust boundary. Existing MCP
 restrictions remain intact and can still be removed by offline restore. Green

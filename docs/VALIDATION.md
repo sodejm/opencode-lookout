@@ -3,7 +3,8 @@
 ## Local checks
 
 Validated locally on November 3, 2026, with OpenCode 2.2.5, Node.js 26.12.1, and
-macOS. `make check` runs Prettier, TypeScript checking, and Node's native test runner.
+macOS. `make check` runs Prettier, relative documentation-link checks, TypeScript
+checking, and Node's native test runner.
 All 17 tests pass. Current tests
 cover catalog field filtering, literal searches, disabled-item recovery, ownership
 markers, reversible controls, malformed config, duplicate keys, protected IDs,
@@ -42,14 +43,6 @@ personal credentials. These safeguards were added after an earlier keyboard-test
 failure submitted text to a free model. Only the hardened runs above establish
 the current no-inference result.
 
-## Existing usage-router documentation
-
-From the global configuration directory,
-`node --test routing/router.test.mjs routing/plugin.test.mjs` passed all 29 tests.
-The source diff against pre-edit backups contains comments only. The Node runner
-reports the existing unspecified-module-type warning for `usage-router.js`;
-changing the global package type is outside this documentation change.
-
 ## Personal installation
 
 The normal server loaded one active `personal.control-center` plugin with server,
@@ -77,5 +70,6 @@ still needs confirmation; the automated terminal evidence above used fixtures.
 
 ## Human review
 
-Human review of the exact implementation commit is pending. This is a local,
-private installation; no push, package publication, or hosted release has occurred.
+Human review of the exact implementation commit is pending. Public source hosting
+is separate from approval for a tagged release. No npm package or release artifact
+is published by the CI workflow; see [Release policy](RELEASING.md).

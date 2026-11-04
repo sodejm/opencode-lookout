@@ -68,8 +68,7 @@ export default Plugin.define({
       message: string,
       variant: "info" | "error" | "success" = "info",
     ) => {
-      if (!stopped)
-        ctx.ui.toast.show({ title: "Control Center", message, variant });
+      if (!stopped) ctx.ui.toast.show({ title: "Lookout", message, variant });
     };
 
     /** Ignore responses for old locations and stop all pending requests on unload. */
@@ -230,7 +229,7 @@ export default Plugin.define({
         let action = "";
         const filteredRows = filterRows(rows(), { kind, state }) as Row[];
         const selected = await ctx.ui.dialog.select<Row>({
-          title: `Control Center · ${kind === "all" ? "All" : titles[kind]} · ${state}${snapshot().errors.length ? " · stale" : ""}`,
+          title: `Lookout · ${kind === "all" ? "All" : titles[kind]} · ${state}${snapshot().errors.length ? " · stale" : ""}`,
           placeholder: "Search IDs, names, descriptions, models…",
           options: filteredRows.map((row) => ({
             title: text(row.label),
@@ -342,29 +341,29 @@ export default Plugin.define({
       commands: [
         {
           id: "control-center.open",
-          title: "Open Control Center",
-          group: "Control Center",
+          title: "Open Lookout",
+          group: "Lookout",
           palette: true,
           slash: { name: "control-center", arguments: true },
           run: (input) => browse(input?.trim() || "all"),
         },
         {
           id: "control-center.refresh",
-          title: "Refresh Control Center",
-          group: "Control Center",
+          title: "Refresh Lookout",
+          group: "Lookout",
           palette: true,
           run: refresh,
         },
         {
           id: "control-center.help",
-          title: "Control Center troubleshooting",
-          group: "Control Center",
+          title: "Lookout troubleshooting",
+          group: "Lookout",
           palette: true,
           run: async () => {
             await ctx.ui.dialog.alert({
               title: "Troubleshooting",
               message:
-                "Outside OpenCode, run:\nnode ~/.config/opencode/extensions/control-center/bin/control-center.mjs status\nUse unload to disable the extension, or load to enable it.\nUnload preserves resource restrictions. See the README for restore and safe mode.",
+                "From your Lookout checkout, outside OpenCode, run:\nnode bin/control-center.mjs status\nUse unload to disable the extension, or load to enable it.\nUnload preserves resource restrictions. See the README for restore and safe mode.",
             });
           },
         },
@@ -418,7 +417,7 @@ export default Plugin.define({
               })
             }
           >
-            <b>{preferences.collapsed ? "▶" : "▼"} Control Center</b>
+            <b>{preferences.collapsed ? "▶" : "▼"} Lookout</b>
           </text>
           <Show when={!preferences.collapsed}>
             <Show when={loading()}>
@@ -488,7 +487,7 @@ export default Plugin.define({
         <ErrorBoundary
           fallback={
             <text fg={ctx.theme.text.muted}>
-              Control Center unavailable; use unload.
+              Lookout unavailable; use unload.
             </text>
           }
         >

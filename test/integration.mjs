@@ -223,10 +223,7 @@ try {
       { cwd: project, env, timeout: 90_000, stdio: "pipe" },
     );
     const terminal = await readFile(transcript, "utf8");
-    assert(
-      terminal.includes("Control Center"),
-      "sidebar or dialog title rendered",
-    );
+    assert(terminal.includes("Lookout"), "sidebar or dialog title rendered");
     assert(
       terminal.includes("Fixture skill"),
       "fixture skill rendered in catalog",

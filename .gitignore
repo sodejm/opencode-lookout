@@ -2,3 +2,9 @@ node_modules/
 *.log
 coverage/
 test-artifacts/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.cc-lock
+*.cc-*.tmp

@@ -1,13 +1,40 @@
-# OpenCode Control Center
+# OpenCode Lookout
+
+[![CI](https://github.com/sodejm/opencode-lookout/actions/workflows/ci.yml/badge.svg)](https://github.com/sodejm/opencode-lookout/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Inspect agents, skills, plugins, commands, providers, and models in
 OpenCode's terminal interface. The extension appends a compact section to the
 existing sidebar. It does not replace Context or MCP status.
 Use OpenCode's native MCP section or `/mcps` for MCP inventory and controls.
 
-Requires OpenCode **2.2.5** and Node.js **22 or later**. The package is private and
-local; it is not published. Install development dependencies with
-`npm ci --ignore-scripts`. Do not use the legacy `@opencode-ai/plugin` API for this package.
+Lookout is an independent community extension, not an official OpenCode product.
+It targets OpenCode **2.2.5** and Node.js **22 or later**. The repository is public
+under the MIT license; the package remains `private: true` to prevent accidental
+npm publication. Compatibility with other OpenCode versions is not established.
+
+## Install
+
+Clone outside OpenCode's automatically discovered `plugins/` directory:
+
+```sh
+git clone https://github.com/sodejm/opencode-lookout.git
+cd opencode-lookout
+npm ci --ignore-scripts
+make check
+node bin/control-center.mjs load
+```
+
+Create your global OpenCode configuration through OpenCode first if it does not
+exist. Lookout requires exactly one `opencode.json` or `opencode.jsonc` there;
+it will not create a new config or choose between two files. Keep the checkout
+at its installed path, because the load entry refers to that directory.
+
+**Existing installations:** do not clone a second instance. Update your existing
+checkout and use `/reload`. The plugin/RPC ID `personal.control-center`, command
+`/control-center`, recovery filename, storage keys, and `cc:` ownership markers
+remain stable. Some restriction and error messages still use **Control Center**,
+the extension's original name. No configuration migration is required.
 
 ## Load or unload
 
@@ -39,7 +66,7 @@ entries. Existing permissions, policies, credentials, and plugin entries remain.
 
 ## Browse the catalog
 
-Run `/control-center`, or choose **Open Control Center** in the command palette.
+Run `/control-center`, or choose **Open Lookout** in the command palette.
 Use `/control-center skill` to start with one category. Category names are `agent`,
 `skill`, `plugin`, `command`, `provider`, and `model`.
 
@@ -84,7 +111,7 @@ work to finish before changing resources it may use.
 | Agents | Inspect; use `/agents` to select |
 | Commands, providers, models | Inspect; use native OpenCode or Console controls |
 | Built-in, managed, unknown-source plugins | Read-only |
-| Control Center itself | Use the external `unload` command |
+| Lookout itself | Use the external `unload` command |
 
 **Enable** removes this extension's denial. It never adds an `allow`, removes an
 external restriction, or overrides managed policy. A missing resource stays in
@@ -147,3 +174,12 @@ share its credential files or raw terminal transcript.
 See [Architecture](docs/ARCHITECTURE.md) for module boundaries and configuration
 ownership, [Threat model](docs/THREAT_MODEL.md) for safety limits, and
 [Validation](docs/VALIDATION.md) for evidence and remaining manual checks.
+
+## Project information
+
+- [Contributing](CONTRIBUTING.md): setup, tests, and review expectations.
+- [Security](SECURITY.md): supported versions and private vulnerability reports.
+- [Support](SUPPORT.md): troubleshooting and useful bug reports.
+- [Code of conduct](CODE_OF_CONDUCT.md) and [governance](GOVERNANCE.md).
+- [Changelog](CHANGELOG.md) and [MIT license](LICENSE).
+- [Repository metadata and release policy](docs/RELEASING.md).
