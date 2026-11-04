@@ -37,6 +37,11 @@ production credential access, RPC methods, file targets, or resource kinds.
 
 ## Limits and review
 
+The status-dot and MCP-display change affects presentation only. It adds no RPC,
+configuration write, credential access, or trust boundary. Existing MCP
+restrictions remain intact and can still be removed by offline restore. Green
+dots indicate catalog availability, not successful authentication or execution.
+
 - Global changes can affect active work in other sessions. The preview warns about
   this; it does not forcibly stop or migrate those sessions.
 - Higher-priority policy can override a local denial. A saved entry is not proof

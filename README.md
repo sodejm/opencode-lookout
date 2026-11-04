@@ -1,8 +1,9 @@
 # OpenCode Control Center
 
-Inspect agents, skills, plugins, MCP servers, commands, providers, and models in
+Inspect agents, skills, plugins, commands, providers, and models in
 OpenCode's terminal interface. The extension appends a compact section to the
 existing sidebar. It does not replace Context or MCP status.
+Use OpenCode's native MCP section or `/mcps` for MCP inventory and controls.
 
 Requires OpenCode **2.2.5** and Node.js **22 or later**. The package is private and
 local; it is not published. Install development dependencies with
@@ -40,7 +41,7 @@ entries. Existing permissions, policies, credentials, and plugin entries remain.
 
 Run `/control-center`, or choose **Open Control Center** in the command palette.
 Use `/control-center skill` to start with one category. Category names are `agent`,
-`skill`, `plugin`, `mcp`, `command`, `provider`, and `model`.
+`skill`, `plugin`, `command`, `provider`, and `model`.
 
 The catalog uses OpenCode's native searchable dialogs:
 
@@ -63,6 +64,13 @@ appear. Pins and collapsed sections are terminal presentation preferences; they
 do not enable or disable resources. Keyboard-only users can access every resource
 and action through `/control-center`, even when the terminal hides the sidebar.
 
+Status dots use the native sidebar's semantic theme colors: green for available
+or active entries, yellow for pending, stale, unknown, or still-listed restrictions,
+grey for disabled or inactive entries, and red for failures. The selected agent
+also has an arrow. Green reflects catalog availability, not verified provider
+authentication, quota, or successful execution. Open an item's details for its
+text status.
+
 ## What the controls mean
 
 Resource changes require a preview and **Apply Globally** confirmation. They affect
@@ -72,7 +80,6 @@ work to finish before changing resources it may use.
 | Resource | Supported control |
 | --- | --- |
 | Skills from configured local sources | Add an exact `skill.use` denial |
-| MCP servers in your global configuration | Add an exact `mcp.use` denial; do not delete credentials |
 | Local plugins inside your OpenCode configuration directory | Add an exact `-plugin-id` entry |
 | Agents | Inspect; use `/agents` to select |
 | Commands, providers, models | Inspect; use native OpenCode or Console controls |
@@ -83,6 +90,11 @@ work to finish before changing resources it may use.
 external restriction, or overrides managed policy. A missing resource stays in
 the catalog as a disabled row when Control Center owns its restriction, so you can
 restore it after a reload or restart.
+
+Older Control Center MCP restrictions are preserved, not silently removed when
+the inventory is hidden. Use the external `restore --yes` command to remove all
+Control Center restrictions, including those MCP entries. The legacy MCP RPC
+contract remains available for compatibility; it is not exposed in the browser.
 
 **Restricted; still listed** means the config entry exists but the live catalog
 still includes the resource. Do not interpret that state as successful blocking.

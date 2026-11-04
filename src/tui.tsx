@@ -10,14 +10,19 @@ import {
 } from "solid-js";
 import { ControlCenter } from "./rpc";
 import { ID } from "./config.mjs";
-import { KINDS, filterRows, text } from "./catalog.mjs";
+import {
+  BROWSE_KINDS,
+  displayRows,
+  statusTone,
+  filterRows,
+  text,
+} from "./catalog.mjs";
 import type { Row, Snapshot, Preview } from "./types";
 
 const titles: Record<string, string> = {
   agent: "Agents",
   skill: "Skills",
   plugin: "Plugins",
-  mcp: "MCP servers",
   command: "Commands",
   provider: "Providers",
   model: "Models",
@@ -48,6 +53,7 @@ export default Plugin.define({
     });
     const [loading, setLoading] = createSignal(false);
     const [unavailable, setUnavailable] = createSignal(false);
+    const rows = () => displayRows(snapshot().rows);
     const currentLocation = () => {
       const route = ctx.ui.router.current();
       return (
@@ -215,18 +221,18 @@ export default Plugin.define({
 
     /** Native searchable dialogs keep selection, keyboard focus, and styling consistent. */
     async function browse(initialKind = "all") {
-      let kind = KINDS.includes(initialKind) ? initialKind : "all",
+      let kind = BROWSE_KINDS.includes(initialKind) ? initialKind : "all",
         state = "all";
       await refresh();
       while (!stopped) {
         await new Promise<void>((resolve) => setTimeout(resolve, 0));
         if (stopped) break;
         let action = "";
-        const rows = filterRows(snapshot().rows, { kind, state }) as Row[];
+        const filteredRows = filterRows(rows(), { kind, state }) as Row[];
         const selected = await ctx.ui.dialog.select<Row>({
           title: `Control Center · ${kind === "all" ? "All" : titles[kind]} · ${state}${snapshot().errors.length ? " · stale" : ""}`,
           placeholder: "Search IDs, names, descriptions, models…",
-          options: rows.map((row) => ({
+          options: filteredRows.map((row) => ({
             title: text(row.label),
             value: row,
             description: `${row.id} · ${row.status}`,
@@ -234,7 +240,9 @@ export default Plugin.define({
           })),
           search: (query, options) => {
             const matches = new Set(
-              filterRows(rows, { query }).map((r: Row) => `${r.kind}:${r.id}`),
+              filterRows(filteredRows, { query }).map(
+                (r: Row) => `${r.kind}:${r.id}`,
+              ),
             );
             return options.filter((o) =>
               matches.has(`${o.value.kind}:${o.value.id}`),
@@ -277,7 +285,7 @@ export default Plugin.define({
           kind =
             (await ctx.ui.dialog.select({
               title: "Category",
-              options: ["all", ...KINDS].map((value) => ({
+              options: ["all", ...BROWSE_KINDS].map((value) => ({
                 title: titles[value] ?? "All categories",
                 value,
               })),
@@ -364,6 +372,15 @@ export default Plugin.define({
     }));
 
     function Sidebar() {
+      const dot = (row: Row) => {
+        const tone = statusTone(
+          row,
+          unavailable() || snapshot().errors.length > 0,
+        );
+        return tone === "muted"
+          ? ctx.theme.text.muted
+          : ctx.theme.text.feedback[tone].base;
+      };
       const selectedAgent = () => {
         const route = ctx.ui.router.current();
         return route.type === "session"
@@ -371,14 +388,14 @@ export default Plugin.define({
           : undefined;
       };
       const visible = (kind: string) => {
-        const rows = snapshot().rows.filter((row) => row.kind === kind);
-        const pinned = rows.filter((row) =>
+        const categoryRows = rows().filter((row) => row.kind === kind);
+        const pinned = categoryRows.filter((row) =>
           preferences.pins.includes(`${kind}:${row.id}`),
         );
         return (
           pinned.length
             ? pinned
-            : filterRows(rows)
+            : filterRows(categoryRows)
                 .filter(
                   (row: Row) =>
                     (kind !== "plugin" || row.source !== "builtin") &&
@@ -412,7 +429,7 @@ export default Plugin.define({
                 Stale / unavailable — refresh
               </text>
             </Show>
-            <For each={KINDS}>
+            <For each={BROWSE_KINDS}>
               {(kind) => (
                 <box flexDirection="column">
                   <text
@@ -428,22 +445,21 @@ export default Plugin.define({
                     {preferences.expanded.includes(kind) ? "▼" : "▶"}{" "}
                     <b>{titles[kind]}</b>{" "}
                     <span style={{ fg: ctx.theme.text.muted }}>
-                      {snapshot().rows.filter((r) => r.kind === kind).length}
+                      {rows().filter((r) => r.kind === kind).length}
                     </span>
                   </text>
                   <Show when={preferences.expanded.includes(kind)}>
                     <For each={visible(kind)}>
                       {(row) => (
                         <text
-                          fg={ctx.theme.text.muted}
+                          fg={ctx.theme.text.base}
                           onMouseDown={() => void detail(row)}
                         >
                           {"  "}
-                          {row.owned
-                            ? "○"
-                            : row.kind === "agent" && row.id === selectedAgent()
-                              ? "›"
-                              : "•"}{" "}
+                          <span style={{ fg: dot(row) }}>•</span>{" "}
+                          {row.kind === "agent" && row.id === selectedAgent()
+                            ? "› "
+                            : ""}
                           {text(row.label, 28)}
                         </text>
                       )}

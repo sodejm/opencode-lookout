@@ -8,6 +8,12 @@ theme colors, not hardcoded Carbonfox colors
 or private host renderables. The UI requests a location-scoped inventory through
 `src/rpc.ts`. It never writes configuration or executes a shell command.
 
+The display allowlist excludes MCP from sidebar headings, category selection,
+search, and saved pins; OpenCode provides that interface natively. The server's
+seven-category RPC contract and owned MCP restrictions remain unchanged for
+compatibility and offline recovery. Status dots use the same semantic feedback
+tokens as the native MCP sidebar, with muted text for inactive entries.
+
 `src/server.ts` reads the public V2 catalogs. Each category can fail independently;
 the UI keeps stale data and disables controls rather than infer an empty catalog.
 Inventory normalization in `src/catalog.mjs` copies only display fields. It does

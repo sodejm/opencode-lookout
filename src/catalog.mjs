@@ -1,7 +1,7 @@
 import { isAbsolute, relative, resolve } from "node:path";
 import { ID, validateID } from "./config.mjs";
 
-/** Stable categories shared by the RPC, filters, and sidebar. */
+/** Stable RPC categories, including MCP for compatibility and restriction recovery. */
 export const KINDS = [
   "agent",
   "skill",
@@ -11,6 +11,41 @@ export const KINDS = [
   "provider",
   "model",
 ];
+/** Leave MCP browsing to the native sidebar and /mcps dialog. */
+export const BROWSE_KINDS = KINDS.filter((kind) => kind !== "mcp");
+
+/**
+ * Limit all Control Center views, including search and saved pins, to its categories.
+ * @param {Array<import('./types').Row>} rows Unmodified server snapshot.
+ * @returns {Array<import('./types').Row>} Rows for the sidebar and browser.
+ */
+export function displayRows(rows) {
+  return rows.filter((row) => BROWSE_KINDS.includes(row.kind));
+}
+
+/**
+ * Select native semantic colors without treating catalog availability as health.
+ * @param {{status:string}} row Normalized catalog status.
+ * @param {boolean} stale Whether the current snapshot is incomplete or unavailable.
+ * @returns {'success'|'warning'|'error'|'muted'} Theme role for the status dot.
+ */
+export function statusTone(row, stale = false) {
+  if (stale) return "warning";
+  if (row.status === "failed") return "error";
+  if (["active", "available", "connected"].includes(row.status))
+    return "success";
+  if (
+    [
+      "unknown",
+      "stale",
+      "pending",
+      "needs_auth",
+      "restricted; still listed",
+    ].includes(row.status)
+  )
+    return "warning";
+  return "muted";
+}
 /**
  * Remove terminal control characters and bound untrusted display strings.
  * @param {unknown} value Untrusted display value.

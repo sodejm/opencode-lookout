@@ -232,6 +232,15 @@ try {
       "fixture skill rendered in catalog",
     );
     assert(!terminal.includes("TUI plugin failed"), "no plugin load failure");
+    assert(
+      !terminal.includes("MCP servers"),
+      "no duplicate MCP inventory in Control Center",
+    );
+    if (process.env.CC_NARROW !== "1")
+      assert(
+        terminal.includes("Connected"),
+        "native MCP status remains visible",
+      );
     const completed = await request(`/api/session/${id}`);
     assert.equal(
       (completed.data ?? completed).cost,

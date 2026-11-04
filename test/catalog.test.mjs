@@ -1,11 +1,58 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { normalize, mergeOwned, filterRows, text } from "../src/catalog.mjs";
+import { BROWSE_KINDS, displayRows, statusTone } from "../src/catalog.mjs";
 const scope = {
   configDir: "/config/opencode",
   home: "/home/test",
   config: { mcp: { local: { type: "local" } } },
 };
+test("Control Center omits MCP from every display view without changing recovery rows", () => {
+  const rows = mergeOwned(
+    normalize("skill", [{ id: "fixture", name: "Fixture" }], scope),
+    [{ kind: "mcp", id: "legacy" }],
+  );
+  assert.deepEqual(BROWSE_KINDS, [
+    "agent",
+    "skill",
+    "plugin",
+    "command",
+    "provider",
+    "model",
+  ]);
+  assert.deepEqual(
+    displayRows(rows).map((r) => r.kind),
+    ["skill"],
+  );
+  assert.equal(filterRows(displayRows(rows), { query: "legacy" }).length, 0);
+  assert.equal(rows.find((r) => r.kind === "mcp").owned, true);
+});
+test("status dots distinguish availability, attention, failure and disabled states", () => {
+  for (const status of ["active", "available", "connected"])
+    assert.equal(statusTone({ status }), "success");
+  for (const status of [
+    "unknown",
+    "stale",
+    "pending",
+    "needs_auth",
+    "restricted; still listed",
+  ])
+    assert.equal(statusTone({ status }), "warning");
+  for (const status of [
+    "disabled",
+    "disabled (Control Center)",
+    "hidden",
+    "inactive",
+  ])
+    assert.equal(statusTone({ status }), "muted");
+  assert.equal(statusTone({ status: "failed" }), "error");
+  assert.equal(statusTone({ status: "future-status" }), "muted");
+  assert.equal(
+    statusTone({ status: "active" }, true),
+    "warning",
+    "stale snapshots must not look healthy",
+  );
+});
 test("catalog only returns safe display fields and honest management capabilities", () => {
   const rows = normalize(
     "agent",
