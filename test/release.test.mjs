@@ -62,7 +62,56 @@ test("CodeQL rejects findings of every level, failed analysis, and malformed evi
     ),
   );
   assert.throws(() => scanClean("codeql", report, 1));
-  for (const level of ["note", "warning", "error", undefined])
+  for (const key of [
+    "toolExecutionNotifications",
+    "toolConfigurationNotifications",
+  ]) {
+    const verify = (notification) =>
+      scanClean(
+        "codeql",
+        {
+          ...report,
+          runs: [
+            {
+              ...run,
+              invocations: [
+                { executionSuccessful: true, [key]: [notification] },
+              ],
+            },
+          ],
+        },
+        0,
+      );
+    for (const level of ["none", "note"])
+      assert.doesNotThrow(() =>
+        verify({
+          level,
+          message: { text: "" },
+          descriptor: {
+            id: "actions/diagnostics/successfully-extracted-files",
+          },
+        }),
+      );
+    for (const level of ["warning", "error", undefined, null, "unknown"])
+      assert.throws(
+        () => verify({ level, message: { text: "diagnostic" } }),
+        /CodeQL warning\/error/,
+      );
+    assert.throws(() =>
+      verify({ level: "none", exception: { message: "failed" } }),
+    );
+    assert.throws(() => verify(null));
+  }
+  assert.throws(
+    () =>
+      scanClean(
+        "codeql",
+        { ...report, runs: [{ ...run, results: undefined }] },
+        0,
+      ),
+    /Missing CodeQL results/,
+  );
+  for (const level of ["none", "note", "warning", "error", undefined])
     assert.throws(() =>
       scanClean(
         "codeql",

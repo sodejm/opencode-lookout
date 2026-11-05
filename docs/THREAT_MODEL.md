@@ -25,6 +25,9 @@ Actions are SHA-pinned and use standard public runners. Repository access is
 read-only except CodeQL security-result uploads (`security-events: write`);
 CodeQL database uploads are disabled. Its Actions and JavaScript/TypeScript
 analyses reject every SARIF result and warning/error, not just scanner failures.
+Explicit `none`/`note` invocation diagnostics (such as successfully extracted
+files) are informational, not findings. Missing or unknown diagnostic levels and
+recorded exceptions still block, as do findings with any level, even `none`.
 Downloads of
 standalone scanner binaries, the Semgrep image, rule archive, and Node base image
 are digest-pinned. CLI versions are discovered dynamically, and npm integrity binds

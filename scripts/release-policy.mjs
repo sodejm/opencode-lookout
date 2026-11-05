@@ -69,7 +69,12 @@ export function scanClean(kind, report, exit) {
       const entry = record(run);
       if (record(record(entry.tool).driver).name !== "CodeQL")
         throw new Error("Unexpected SARIF tool");
-      empty(entry.results);
+      if (!Array.isArray(entry.results))
+        throw new Error("Missing CodeQL results array");
+      if (entry.results.length)
+        throw new Error(
+          `CodeQL findings: ${JSON.stringify(entry.results).slice(0, 8000)}`,
+        );
       // SARIF invocations are optional. The workflow requires a successful analyze
       // step before this validator; recorded diagnostics must not indicate failure.
       if (entry.invocations !== undefined && !Array.isArray(entry.invocations))
@@ -89,7 +94,12 @@ export function scanClean(kind, report, exit) {
           if (!Array.isArray(execution[key]))
             throw new Error("Malformed CodeQL notifications");
           for (const notification of execution[key])
-            if (record(notification).level !== "note")
+            // SARIF's explicit none/note levels describe informational diagnostics,
+            // not results. Missing level defaults to warning and remains blocking.
+            if (
+              !["none", "note"].includes(String(record(notification).level)) ||
+              record(notification).exception !== undefined
+            )
               throw new Error(
                 `CodeQL warning/error: ${JSON.stringify(notification)}`,
               );
