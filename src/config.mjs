@@ -7,9 +7,11 @@ import {
 } from "jsonc-parser";
 
 /** Shared server/TUI plugin ID, also used by the offline unload command. */
-export const ID = "personal.control-center";
-const begin = (key) => `/* cc:begin:${key} */`;
-const end = (key) => `/* cc:end:${key} */`;
+export const ID = "opencode-lookout";
+/** @param {string} key Owned array name. */
+const begin = (key) => `/* lookout:begin:${key} */`;
+/** @param {string} key Owned array name. */
+const end = (key) => `/* lookout:end:${key} */`;
 /**
  * Reject policy wildcards and control characters instead of escaping them.
  * @param {string} id Exact catalog resource ID.
@@ -22,15 +24,19 @@ export function validateID(id) {
   )
     throw new Error("Only exact resource IDs without wildcards are supported.");
 }
-/** Validate syntax and duplicate keys before any transformation. */
+/** Validate syntax and duplicate keys before any transformation.
+ * @param {string} text Candidate JSONC.
+ */
 function tree(text) {
+  /** @type {import('jsonc-parser').ParseError[]} */
   const errors = [];
   const root = parseTree(text, errors, { allowTrailingComma: true });
   if (errors.length || root?.type !== "object")
     throw new Error("Invalid JSONC configuration; nothing changed.");
+  /** @param {import('jsonc-parser').Node} node Parsed syntax node. */
   function visit(node) {
     if (node.type === "object") {
-      const keys = node.children.map((p) => p.children[0].value);
+      const keys = (node.children ?? []).map((p) => p.children?.[0].value);
       if (new Set(keys).size !== keys.length)
         throw new Error("Duplicate configuration keys; nothing changed.");
     }
@@ -44,10 +50,13 @@ function tree(text) {
   }
   return root;
 }
-/** @param {string} text JSONC source. @returns {Record<string, any>} Validated configuration. */
+/** @param {string} text JSONC source. @returns {Record<string, unknown>} Syntax-validated configuration; narrow individual values before use. */
 export const parseConfig = (text) => getNodeValue(tree(text));
 
-/** Parse only our canonical tail block. Hand-edited blocks must fail closed. */
+/** Parse only our canonical tail block. Hand-edited blocks must fail closed.
+ * @param {string} text Validated JSONC.
+ * @param {string} key Owned array name.
+ */
 function block(text, key) {
   const root = tree(text),
     start = text.indexOf(begin(key)),
@@ -59,7 +68,7 @@ function block(text, key) {
     text.indexOf(begin(key), start + 1) !== -1 ||
     text.indexOf(end(key), stop + 1) !== -1
   )
-    throw new Error("Damaged Control Center markers; nothing changed.");
+    throw new Error("Damaged Lookout markers; nothing changed.");
   const array = findNodeAtLocation(root, [key]);
   if (
     !array ||
@@ -67,8 +76,8 @@ function block(text, key) {
     stop >= array.offset + array.length ||
     text.slice(stop + end(key).length, array.offset + array.length - 1).trim()
   )
-    throw new Error("Moved Control Center block; nothing changed.");
-  const values = array.children
+    throw new Error("Moved Lookout block; nothing changed.");
+  const values = (array.children ?? [])
     .filter((n) => n.offset > start && n.offset < stop)
     .map(getNodeValue);
   for (const v of values) {
@@ -93,7 +102,7 @@ function block(text, key) {
     .replace(/^,/, "")
     .trim();
   if (fragment !== values.map((v) => JSON.stringify(v)).join(", "))
-    throw new Error("Edited Control Center block; nothing changed.");
+    throw new Error("Edited Lookout block; nothing changed.");
   return { values, start, stop: stop + end(key).length };
 }
 /**
@@ -113,7 +122,11 @@ export function owned(text) {
     })),
   ];
 }
-/** Replace only marked bytes; leave external entries and comments intact. */
+/** Replace only marked bytes; leave external entries and comments intact.
+ * @param {string} text Validated JSONC.
+ * @param {string} key Owned array name.
+ * @param {Array<string | {action:string,resource:string,effect:string}>} values Canonical owned entries.
+ */
 function replaceBlock(text, key, values) {
   const current = block(text, key);
   if (current.start !== -1)
@@ -130,6 +143,8 @@ function replaceBlock(text, key, values) {
       }),
     );
   const array = findNodeAtLocation(tree(text), [key]);
+  if (!array?.children)
+    throw new Error("Missing configuration array; nothing changed.");
   const offset = array.offset + array.length - 1;
   const last = array.children.at(-1);
   // Check trailing comma via scanner-free parsing of the between-nodes region.
@@ -162,14 +177,14 @@ export function change(text, kind, id, enabled) {
     throw new Error("Unsupported control.");
   if (kind === "plugin" && (id === ID || id.startsWith("opencode.")))
     throw new Error(
-      "Protected plugin; use the external lifecycle command for Control Center.",
+      "Protected plugin; use the external lifecycle command for Lookout.",
     );
   const key = kind === "plugin" ? "plugins" : "policies";
   const all = owned(text);
   const exists = all.some((v) => v.kind === kind && v.id === id);
   if (enabled && !exists)
     throw new Error(
-      "No Control Center restriction to remove. Existing external rules remain authoritative.",
+      "No Lookout restriction to remove. Existing external rules remain authoritative.",
     );
   const next = all.filter((v) => !(v.kind === kind && v.id === id));
   if (!enabled) next.push({ kind, id });
@@ -195,7 +210,7 @@ export function change(text, kind, id, enabled) {
  * @returns {string} Updated configuration; the caller owns atomic persistence.
  */
 export function lifecycle(text, packagePath, enable) {
-  const marker = "/* cc:lifecycle */";
+  const marker = "/* lookout:lifecycle */";
   tree(text);
   if (!findNodeAtLocation(tree(text), ["plugins"]))
     text = applyEdits(
@@ -205,6 +220,8 @@ export function lifecycle(text, packagePath, enable) {
       }),
     );
   const array = findNodeAtLocation(tree(text), ["plugins"]);
+  if (!array?.children)
+    throw new Error("Missing plugin array; nothing changed.");
   const desired = enable ? packagePath : `-${ID}`;
   const index = text.indexOf(marker);
   if (index !== -1) {

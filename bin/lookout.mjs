@@ -35,6 +35,8 @@ export async function configFile() {
  * load/unload changes only the marked package entry. restore removes all owned
  * resource restrictions and requires --yes because it can restore tool access.
  * Status describes disk configuration, not server or TUI readiness.
+ * @param {string[]} args CLI arguments, excluding the executable and script path.
+ * @returns {Promise<void>} Resolves after the requested operation and status output.
  */
 export async function main(args = process.argv.slice(2)) {
   const [command = "status", confirmation] = args;
@@ -45,11 +47,11 @@ export async function main(args = process.argv.slice(2)) {
       (command !== "restore" || confirmation !== "--yes"))
   )
     throw new Error(
-      "Usage: node bin/control-center.mjs [load|unload|status|restore --yes]",
+      "Usage: node bin/lookout.mjs [load|unload|status|restore --yes]",
     );
   if (command === "restore" && confirmation !== "--yes")
     throw new Error(
-      "Restore removes every Control Center restriction globally. Repeat with restore --yes to confirm.",
+      "Restore removes every Lookout restriction globally. Repeat with restore --yes to confirm.",
     );
   const file = await configFile();
   const packagePath = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -58,7 +60,7 @@ export async function main(args = process.argv.slice(2)) {
       lifecycle(text, packagePath, command === "load"),
     );
     console.log(
-      `Control Center ${command === "load" ? "load" : "unload"} configured. OpenCode watches this file; use /reload if needed.`,
+      `Lookout ${command === "load" ? "load" : "unload"} configured. OpenCode watches this file; use /reload if needed.`,
     );
     if (command === "unload")
       console.log(
@@ -69,11 +71,12 @@ export async function main(args = process.argv.slice(2)) {
       owned(text).reduce((next, r) => change(next, r.kind, r.id, true), text),
     );
     console.log(
-      "Removed Control Center restrictions only. Other policies and disabled settings remain unchanged.",
+      "Removed Lookout restrictions only. Other policies and disabled settings remain unchanged.",
     );
   }
   const { text } = await readConfig(file);
-  const plugins = parseConfig(text).plugins ?? [];
+  const value = parseConfig(text).plugins;
+  const plugins = Array.isArray(value) ? value : [];
   console.log(
     `Package entry: ${plugins.includes(packagePath) ? "present" : plugins.includes("-" + ID) ? "disabled" : "not configured"}`,
   );

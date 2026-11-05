@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Controller, atomicUpdate } from "../src/controller.mjs";
 async function fixture(t) {
-  const dir = await mkdtemp(join(tmpdir(), "cc-test-"));
+  const dir = await mkdtemp(join(tmpdir(), "lookout-test-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const file = join(dir, "opencode.jsonc");
   await writeFile(file, '{"policies":[],"plugins":[]}');
@@ -65,13 +65,13 @@ test("symlinks and concurrent writes are rejected; failures leave original reada
     /regular/,
   );
   const initial = await readFile(file, "utf8");
-  await writeFile(file + ".cc-lock", "busy");
+  await writeFile(file + ".lookout-lock", "busy");
   await assert.rejects(
     atomicUpdate(file, null, (s) => s + " "),
     /Another/,
   );
   assert.equal(await readFile(file, "utf8"), initial);
-  await rm(file + ".cc-lock");
+  await rm(file + ".lookout-lock");
   await assert.rejects(
     atomicUpdate(file, null, () => {
       throw new Error("test failure");

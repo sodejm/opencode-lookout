@@ -4,6 +4,7 @@ set url [lindex $argv 0]
 set session [lindex $argv 1]
 set transcript [lindex $argv 2]
 set narrow [lindex $argv 3]
+set readonly [lindex $argv 4]
 log_user 0
 log_file -a -noappend $transcript
 spawn -noecho opencode --server $url --session $session
@@ -25,7 +26,7 @@ if {$narrow == "1"} {
   }
 }
 after 2500
-send -- "/control-center skill"
+send -- "/lookout skill"
 after 500
 send -- "\r"
 expect {
@@ -47,11 +48,17 @@ expect {
   timeout {exit 14}
 }
 send -- "\023"
+# Older renderers emit only changed cells inside option labels. The dialog
+# heading prefix is contiguous; do not require a full option redraw.
 expect {
-  -re {Controllable here} {}
+  -re {Filter by} {}
   timeout {exit 15}
 }
-send -- "Controllable"
+if {$readonly == "1"} {
+  send -- "All"
+} else {
+  send -- "Controllable"
+}
 after 300
 send -- "\r"
 expect {
@@ -62,7 +69,7 @@ send -- "fixture"
 after 500
 send -- "\r"
 expect {
-  -re {Pin to sidebar} {}
+  -re {to sidebar} {}
   timeout {exit 4}
 }
 send -- "\r"
@@ -72,8 +79,19 @@ expect {
 }
 send -- "\033\[27u"
 after 800
+# Old policy APIs must still support browsing, but never offer an effective mutation.
+if {$readonly == "1"} {
+  set cli [file join [file dirname [file dirname [info script]]] bin lookout.mjs]
+  set status [exec node $cli status]
+  if {![string match {*Owned restrictions: 0*} $status]} {exit 18}
+  send -- "\003"
+  after 200
+  send -- "\003"
+  expect eof
+  exit 0
+}
 # Reopen explicitly after the one-shot inspector closes.
-send -- "/control-center skill"
+send -- "/lookout skill"
 after 500
 send -- "\r"
 expect {
@@ -83,7 +101,7 @@ expect {
 after 400
 send -- "\r"
 expect {
-  -re {Pin to sidebar} {}
+  -re {to sidebar} {}
   timeout {exit 9}
 }
 after 300
@@ -97,10 +115,10 @@ expect {
 # Cancel first: the UI must not apply a change just because it was previewed.
 send -- "\033\[27u"
 after 800
-set cli [file join [file dirname [file dirname [info script]]] bin control-center.mjs]
+set cli [file join [file dirname [file dirname [info script]]] bin lookout.mjs]
 set status [exec node $cli status]
 if {![string match {*Owned restrictions: 0*} $status]} {exit 17}
-send -- "/control-center skill"
+send -- "/lookout skill"
 after 500
 send -- "\r"
 expect {
@@ -110,7 +128,7 @@ expect {
 after 400
 send -- "\r"
 expect {
-  -re {Pin to sidebar} {}
+  -re {to sidebar} {}
   timeout {exit 10}
 }
 after 300

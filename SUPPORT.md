@@ -9,7 +9,7 @@ Before reporting a problem:
 1. Read the [troubleshooting steps](README.md#troubleshoot).
 2. Record your OpenCode and Node.js versions, operating system, terminal, theme,
    and approximate terminal dimensions.
-3. Run `node bin/control-center.mjs status` from the checkout. It reports disk
+3. Run `node bin/lookout.mjs status` from the checkout. It reports disk
    configuration, not proof that the server or UI loaded successfully.
 4. Describe expected and actual behavior, steps to reproduce, and whether external
    unload restores normal behavior. Include the Lookout commit ID if available.

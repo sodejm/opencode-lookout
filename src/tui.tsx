@@ -8,7 +8,7 @@ import {
   Show,
   ErrorBoundary,
 } from "solid-js";
-import { ControlCenter } from "./rpc";
+import { Lookout } from "./rpc";
 import { ID } from "./config.mjs";
 import {
   BROWSE_KINDS,
@@ -32,7 +32,7 @@ const titles: Record<string, string> = {
 export default Plugin.define({
   id: ID,
   setup(ctx) {
-    const rpc = ctx.client.rpc(ControlCenter);
+    const rpc = ctx.client.rpc(Lookout);
     const abort = new AbortController();
     let stopped = false,
       revision = 0,
@@ -298,7 +298,7 @@ export default Plugin.define({
                 { value: "managed", title: "Controllable here" },
                 {
                   value: "disabled",
-                  title: "Disabled / restricted by Control Center",
+                  title: "Disabled / restricted by Lookout",
                 },
                 { value: "local", title: "Local sources" },
                 { value: "errors", title: "Failed / unknown / stale" },
@@ -332,7 +332,8 @@ export default Plugin.define({
     createRoot((dispose) => {
       stopRoot = dispose;
       createEffect(() => {
-        currentLocation().directory;
+        // Read the reactive directory even when refresh itself is untracked.
+        void currentLocation().directory;
         untrack(() => void refresh());
       });
     });
@@ -340,22 +341,22 @@ export default Plugin.define({
       mode: "global",
       commands: [
         {
-          id: "control-center.open",
+          id: "lookout.open",
           title: "Open Lookout",
           group: "Lookout",
           palette: true,
-          slash: { name: "control-center", arguments: true },
+          slash: { name: "lookout", arguments: true },
           run: (input) => browse(input?.trim() || "all"),
         },
         {
-          id: "control-center.refresh",
+          id: "lookout.refresh",
           title: "Refresh Lookout",
           group: "Lookout",
           palette: true,
           run: refresh,
         },
         {
-          id: "control-center.help",
+          id: "lookout.help",
           title: "Lookout troubleshooting",
           group: "Lookout",
           palette: true,
@@ -363,7 +364,7 @@ export default Plugin.define({
             await ctx.ui.dialog.alert({
               title: "Troubleshooting",
               message:
-                "From your Lookout checkout, outside OpenCode, run:\nnode bin/control-center.mjs status\nUse unload to disable the extension, or load to enable it.\nUnload preserves resource restrictions. See the README for restore and safe mode.",
+                "From your Lookout checkout, outside OpenCode, run:\nnode bin/lookout.mjs status\nUse unload to disable the extension, or load to enable it.\nUnload preserves resource restrictions. See the README for restore and safe mode.",
             });
           },
         },
@@ -488,7 +489,7 @@ export default Plugin.define({
               )}
             </For>
             <text fg={ctx.theme.text.muted} onMouseDown={() => void browse()}>
-              /control-center
+              /lookout
             </text>
           </Show>
         </box>

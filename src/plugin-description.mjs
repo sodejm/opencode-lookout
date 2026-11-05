@@ -5,7 +5,11 @@ import { text } from "./catalog.mjs";
 
 const missing = "missing description";
 
-/** Read only bounded regular files; never execute plugin code or follow a file symlink. */
+/** Read only bounded regular files; never execute plugin code or follow a file symlink.
+ * @param {string} file Catalog-selected local file.
+ * @param {number} limit Maximum bytes to read.
+ * @param {boolean} prefixOnly Allow reading just a bounded header from a larger source.
+ */
 async function readMetadata(file, limit, prefixOnly = false) {
   const handle = await open(
     file,
@@ -22,7 +26,9 @@ async function readMetadata(file, limit, prefixOnly = false) {
   }
 }
 
-/** Read an explicit @description tag from the leading JSDoc block, not tool metadata. */
+/** Read an explicit description tag from the leading JSDoc block, not tool metadata.
+ * @param {string} source Bounded file prefix; never evaluated.
+ */
 function headerDescription(source) {
   const header = source.match(
     /^\uFEFF?(?:#![^\n]*\n)?\s*\/\*\*([\s\S]*?)\*\//,
@@ -49,7 +55,11 @@ function headerDescription(source) {
  * @returns {Promise<string>} Sanitized description or the literal fallback.
  */
 export async function pluginDescription(source) {
-  if (source?.type !== "local" || !isAbsolute(source.path ?? ""))
+  if (
+    source?.type !== "local" ||
+    typeof source.path !== "string" ||
+    !isAbsolute(source.path)
+  )
     return missing;
   try {
     const stat = await lstat(source.path);

@@ -1,4 +1,4 @@
-import { open, lstat, readFile, rename, unlink } from "node:fs/promises";
+import { open, rename, unlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 import { change, owned, parseConfig, validateID } from "./config.mjs";
@@ -12,22 +12,47 @@ export const fingerprint = (text) =>
  * @returns {Promise<{text: string, mode: number}>} Validated text and original mode.
  */
 export async function readConfig(file) {
-  const stat = await lstat(file);
-  if (
-    !stat.isFile() ||
-    stat.isSymbolicLink() ||
-    stat.nlink !== 1 ||
-    stat.size > 1024 * 1024
-  )
-    throw new Error(
-      "Configuration must be a regular, unlinked file smaller than 1 MiB.",
-    );
-  const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+  const limit = 1024 * 1024;
+  const invalid =
+    "Configuration must be a regular, unlinked file at most 1 MiB.";
+  // Validate the descriptor, not the path before open. NONBLOCK prevents a FIFO
+  // substituted at this path from hanging before we can reject its file type.
+  const handle = await open(
+    file,
+    constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+  ).catch((error) => {
+    if (error.code === "ELOOP") throw new Error(invalid, { cause: error });
+    throw error;
+  });
   try {
-    const actual = await handle.stat();
-    if (actual.ino !== stat.ino || actual.dev !== stat.dev)
+    const stat = await handle.stat();
+    if (!stat.isFile() || stat.nlink !== 1 || stat.size > limit)
+      throw new Error(invalid);
+    // A file may grow after fstat. Bound allocation and reads even in that case.
+    const bytes = Buffer.alloc(limit + 1);
+    let length = 0;
+    while (length < bytes.length) {
+      const { bytesRead } = await handle.read(
+        bytes,
+        length,
+        bytes.length - length,
+        length,
+      );
+      if (bytesRead === 0) break;
+      length += bytesRead;
+    }
+    if (length > limit) throw new Error(invalid);
+    const after = await handle.stat();
+    if (
+      length !== stat.size ||
+      after.size !== stat.size ||
+      after.nlink !== 1 ||
+      after.mode !== stat.mode ||
+      after.mtimeMs !== stat.mtimeMs ||
+      after.ctimeMs !== stat.ctimeMs
+    )
       throw new Error("Configuration changed; refresh and retry.");
-    const text = await handle.readFile("utf8");
+    const text = bytes.toString("utf8", 0, length);
     parseConfig(text);
     return { text, mode: stat.mode & 0o777 };
   } finally {
@@ -44,16 +69,16 @@ export async function readConfig(file) {
  * @returns {Promise<void>}
  */
 export async function atomicUpdate(file, expected, transform) {
-  const lockPath = file + ".cc-lock";
+  const lockPath = file + ".lookout-lock";
   let lock;
   try {
     lock = await open(lockPath, "wx", 0o600);
   } catch {
     throw new Error(
-      "Another Control Center write is in progress; retry or inspect the stale lock.",
+      "Another Lookout write is in progress; retry or inspect the stale lock.",
     );
   }
-  const temp = file + `.cc-${randomUUID()}.tmp`;
+  const temp = file + `.lookout-${randomUUID()}.tmp`;
   try {
     const { text, mode } = await readConfig(file);
     if (expected && fingerprint(text) !== expected)
@@ -92,10 +117,15 @@ export class Controller {
     this.file = file;
     this.catalog = catalog;
     this.now = now;
+    /** @type {Map<string, {input: import('./types').ChangeRequest, hash: string, expires: number}>} */
     this.pending = new Map();
+    /** @type {Array<import('./types').ChangeRequest & {time:string}>} */
     this.history = [];
   }
-  /** Recheck both the requested kind and current ownership or eligibility. */
+  /** Recheck both the requested kind and current ownership or eligibility.
+   * @param {import('./types').ChangeRequest} input Candidate change, revalidated at runtime.
+   * @param {string} text Current configuration.
+   */
   async authorize(input, text) {
     const { kind, id, enabled } = input;
     validateID(id);
@@ -117,7 +147,9 @@ export class Controller {
         );
     }
   }
-  /** Validate without writing; issue one token bound to the request and file version. */
+  /** Validate without writing; issue one token bound to the request and file version.
+   * @param {import('./types').ChangeRequest} input Requested resource restriction.
+   */
   async preview(input) {
     const { text } = await readConfig(this.file);
     await this.authorize(input, text);
@@ -131,10 +163,12 @@ export class Controller {
     });
     return {
       token,
-      summary: `${input.enabled ? "Remove Control Center restriction for" : "Disable"} ${input.kind} ${input.id}. Scope: global, every project using this server.\n${input.enabled ? "Other restrictions remain in force; this does not grant access." : "Existing conversations retain previously loaded content. Changes may affect other sessions."}\nOnly an exact-ID ${input.kind === "plugin" ? "plugin entry" : "deny policy"} is changed. OpenCode reloads configuration automatically.`,
+      summary: `${input.enabled ? "Remove Lookout restriction for" : "Disable"} ${input.kind} ${input.id}. Scope: global, every project using this server.\n${input.enabled ? "Other restrictions remain in force; this does not grant access." : "Existing conversations retain previously loaded content. Changes may affect other sessions."}\nOnly an exact-ID ${input.kind === "plugin" ? "plugin entry" : "deny policy"} is changed. OpenCode reloads configuration automatically.`,
     };
   }
-  /** Consume a preview once, revalidate eligibility, and save only that change. */
+  /** Consume a preview once, revalidate eligibility, and save only that change.
+   * @param {string} token One-use preview token.
+   */
   async apply(token) {
     const request = this.pending.get(token);
     this.pending.delete(token);

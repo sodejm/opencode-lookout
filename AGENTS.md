@@ -4,8 +4,8 @@ Read README.md and CONTRIBUTING.md before editing. Inspect branch, worktree, and
 local changes; preserve unrelated work. Do not copy personal OpenCode configuration,
 credentials, transcripts, or machine-specific paths into this repository.
 
-- Keep the change focused. Preserve the `personal.control-center` plugin/RPC ID,
-  `/control-center` command, recovery CLI, storage keys, and `cc:` markers unless
+- Keep the change focused. Preserve the `opencode-lookout` plugin/RPC ID,
+  `/lookout` command, recovery CLI, storage keys, and `lookout:` markers unless
   the maintainer explicitly approves a migration.
 - Encode behavioral changes in tests. Use `make check` before handoff; UI/config
   changes also need isolated integration tests. Do not use personal resources as

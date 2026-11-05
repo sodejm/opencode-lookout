@@ -1,0 +1,9 @@
+.git
+node_modules
+.build
+release-evidence
+test-artifacts
+.env*
+.npmrc
+*.log
+.DS_Store

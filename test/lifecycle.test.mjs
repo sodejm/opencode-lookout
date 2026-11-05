@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { lifecycle, parseConfig, owned, change, ID } from "../src/config.mjs";
 test("load, unload, and reload are idempotent and preserve restrictions and unrelated plugins", () => {
-  const path = "/config/extensions/control-center";
+  const path = "/config/extensions/opencode-lookout";
   let cfg = '{"plugins":["keep"], "policies": [], "model":"keep/model"}';
   cfg = change(cfg, "skill", "review", false);
   cfg = change(cfg, "plugin", "other", false);
