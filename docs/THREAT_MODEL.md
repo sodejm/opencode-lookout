@@ -10,6 +10,12 @@ misconfiguration; Semgrep uses pinned OSS language/Actions security rules; Gitle
 checks full Git history and current nonignored source. No scan is proof of absence
 of vulnerabilities. This does not certify the host OS or an upstream CLI binary.
 
+The repository's `.semgrepignore` overrides default test exclusions: source,
+test harnesses, and fixtures are scanned. Required entrypoint coverage is checked
+explicitly. Only generated output and separately audited dependency code are
+excluded. Downloaded rule fixtures are not project source and must not be scanned
+as if they were part of Lookout.
+
 Actions are SHA-pinned and use standard public runners. Repository access is
 read-only except CodeQL security-result uploads (`security-events: write`);
 CodeQL database uploads are disabled. Its Actions and JavaScript/TypeScript

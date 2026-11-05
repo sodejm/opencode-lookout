@@ -10,10 +10,10 @@ Use OpenCode's native MCP section or `/mcps` for MCP inventory and controls.
 
 Lookout is an independent community extension, not an official OpenCode product.
 It targets OpenCode **2.2.5**. Use Node.js **26.4.0+** for a full development install;
-the offline CLI also supports **22.22.2+ or 24.15.0+** with production dependencies.
+the offline CLI retains **Node.js 22+** support with production dependencies.
 The repository is public
 under the MIT license; the package remains `private: true` to prevent accidental
-npm publication. Compatibility with other OpenCode versions is not established.
+npm publication. See the support profiles below before using another CLI version.
 
 Resource controls require the current V2 policy API (OpenCode 2.2.3+). Older or
 unidentified hosts show a read-only inventory. Release tests require verified

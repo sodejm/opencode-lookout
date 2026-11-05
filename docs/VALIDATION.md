@@ -41,10 +41,10 @@ Reports bind results to source bytes, CLI integrity, and Docker image IDs.
 
 ## Evidence and limits
 
-The renamed plugin passed a Linux arm64 Docker probe against OpenCode 2.2.5 with
-the Carbonfox terminal flow. That probe is not the full release matrix. Current
-machine-readable evidence is generated under ignored `release-evidence/`; do not
+Machine-readable evidence is generated under ignored `release-evidence/`; do not
 commit raw scanner logs or terminal fixtures. See [Release policy](RELEASING.md).
+Read the source digest, target, profile, mode, and exit status together. A passing
+probe or an earlier commit's run is not a passing current release matrix.
 
 The initial five-version run reproduced an ineffective skill restriction on
 2.2.1. Upstream source confirms 2.2.1/2.2.2 use a different policy action; the

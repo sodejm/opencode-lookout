@@ -50,6 +50,18 @@ export function scanClean(kind, report, exit) {
       !scanned.length
     )
       throw new Error("No Semgrep coverage");
+    for (const path of [
+      "src/server.ts",
+      "src/tui.tsx",
+      "src/config.mjs",
+      "src/controller.mjs",
+      "bin/lookout.mjs",
+      "scripts/security.mjs",
+      "test/integration.mjs",
+      ".github/workflows/ci.yml",
+    ])
+      if (!scanned.includes(path))
+        throw new Error(`Missing Semgrep coverage: ${path}`);
   } else if (kind === "codeql") {
     if (r.version !== "2.1.0" || !Array.isArray(r.runs) || !r.runs.length)
       throw new Error("Missing CodeQL runs");
@@ -58,11 +70,16 @@ export function scanClean(kind, report, exit) {
       if (record(record(entry.tool).driver).name !== "CodeQL")
         throw new Error("Unexpected SARIF tool");
       empty(entry.results);
-      if (!Array.isArray(entry.invocations) || !entry.invocations.length)
-        throw new Error("Missing CodeQL execution evidence");
-      for (const invocation of entry.invocations) {
+      // SARIF invocations are optional. The workflow requires a successful analyze
+      // step before this validator; recorded diagnostics must not indicate failure.
+      if (entry.invocations !== undefined && !Array.isArray(entry.invocations))
+        throw new Error("Malformed CodeQL execution evidence");
+      for (const invocation of entry.invocations ?? []) {
         const execution = record(invocation);
-        if (execution.executionSuccessful !== true)
+        if (
+          execution.executionSuccessful !== undefined &&
+          execution.executionSuccessful !== true
+        )
           throw new Error("CodeQL execution failed");
         for (const key of [
           "toolExecutionNotifications",

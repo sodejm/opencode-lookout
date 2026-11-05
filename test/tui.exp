@@ -48,8 +48,10 @@ expect {
   timeout {exit 14}
 }
 send -- "\023"
+# Older renderers emit only changed cells inside option labels. The dialog
+# heading prefix is contiguous; do not require a full option redraw.
 expect {
-  -re {Controllable here} {}
+  -re {Filter by} {}
   timeout {exit 15}
 }
 if {$readonly == "1"} {
@@ -67,7 +69,7 @@ send -- "fixture"
 after 500
 send -- "\r"
 expect {
-  -re {Pin to sidebar} {}
+  -re {to sidebar} {}
   timeout {exit 4}
 }
 send -- "\r"
@@ -99,7 +101,7 @@ expect {
 after 400
 send -- "\r"
 expect {
-  -re {Pin to sidebar} {}
+  -re {to sidebar} {}
   timeout {exit 9}
 }
 after 300
@@ -126,7 +128,7 @@ expect {
 after 400
 send -- "\r"
 expect {
-  -re {Pin to sidebar} {}
+  -re {to sidebar} {}
   timeout {exit 10}
 }
 after 300

@@ -1,0 +1,7 @@
+# Replace Semgrep's defaults so repository tests and fixtures are scanned too.
+# Only generated output and separately audited dependency code are excluded.
+node_modules/
+.build/
+release-evidence/
+test-artifacts/
+.git/

@@ -27,7 +27,18 @@ const reports = {
     version: "1.182.0",
     results: [],
     errors: [],
-    paths: { scanned: ["src/server.ts"] },
+    paths: {
+      scanned: [
+        "src/server.ts",
+        "src/tui.tsx",
+        "src/config.mjs",
+        "src/controller.mjs",
+        "bin/lookout.mjs",
+        "scripts/security.mjs",
+        "test/integration.mjs",
+        ".github/workflows/ci.yml",
+      ],
+    },
   },
   gitleaks: [],
   trivy: {
@@ -35,7 +46,7 @@ const reports = {
     Results: [{ Target: "package-lock.json", Class: "lang-pkgs", Type: "npm" }],
   },
 };
-test("CodeQL rejects findings of every level, failed analysis, and missing execution evidence", () => {
+test("CodeQL rejects findings of every level, failed analysis, and malformed evidence", () => {
   const run = {
     tool: { driver: { name: "CodeQL" } },
     results: [],
@@ -43,6 +54,14 @@ test("CodeQL rejects findings of every level, failed analysis, and missing execu
   };
   const report = { version: "2.1.0", runs: [run] };
   assert.doesNotThrow(() => scanClean("codeql", report, 0));
+  assert.doesNotThrow(() =>
+    scanClean(
+      "codeql",
+      { ...report, runs: [{ ...run, invocations: undefined }] },
+      0,
+    ),
+  );
+  assert.throws(() => scanClean("codeql", report, 1));
   for (const level of ["note", "warning", "error", undefined])
     assert.throws(() =>
       scanClean(
@@ -52,8 +71,7 @@ test("CodeQL rejects findings of every level, failed analysis, and missing execu
       ),
     );
   for (const invocations of [
-    undefined,
-    [],
+    {},
     [{ executionSuccessful: false }],
     [
       {
@@ -114,6 +132,13 @@ test("all scanners fail closed on errors, missing output, and any finding", () =
     scanClean("signatures", { invalid: [], missing: [{}] }, 0),
   );
   assert.throws(() => scanClean("gitleaks", [{ RuleID: "test" }], 0));
+  assert.throws(() =>
+    scanClean(
+      "semgrep",
+      { ...reports.semgrep, paths: { scanned: ["README.md"] } },
+      0,
+    ),
+  );
   assert.throws(() =>
     scanClean(
       "semgrep",

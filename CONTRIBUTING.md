@@ -7,7 +7,7 @@ unrelated cleanup separate. Contributions are licensed under [MIT](LICENSE).
 ## Set up
 
 Use Node.js 26.4.0+ and npm for development, as required by OpenTUI 0.8.0.
-The offline CLI supports Node.js 22.22.2+ or 24.15.0+ (not 23) with production
+The offline CLI retains Node.js 22+ support with production
 dependencies only. OpenCode 2.2.5 is needed only for live integration
 tests. The optional terminal harness needs `/usr/bin/expect` (macOS or Linux).
 

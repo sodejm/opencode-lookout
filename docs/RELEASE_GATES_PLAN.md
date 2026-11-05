@@ -29,9 +29,9 @@ offline lifecycle/recovery, and both terminal browsing flows. Other versions
 must pass full controls and both terminal flows. Unknown versions do not become
 read-only skips. Evidence records and validates each target's profile.
 
-- [ ] Quality, dependency remediation, and naming migration: `src/`, `bin/`,
+- [x] Quality, dependency remediation, and naming migration: `src/`, `bin/`,
   existing tests and docs; run `make check` and both isolated terminal cases.
-- [ ] Scanner/evidence validation: `scripts/`, failure fixtures in `test/`;
+- [x] Scanner/evidence validation: `scripts/`, failure fixtures in `test/`;
   reject every finding, error, missing report, and source mismatch.
 - [ ] Docker matrix and hosted gates: discover and exercise five stable versions
   and the next RC, then validate workflows and repository protection.

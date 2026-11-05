@@ -7,8 +7,11 @@ Read the [threat model](docs/THREAT_MODEL.md) before enabling resource controls.
 ## Supported versions
 
 Security fixes target the current `main` branch. The initial package version is
-0.1.0, tested against OpenCode 2.2.5. There are no maintained older release branches
-or guaranteed response times. Do not assume another OpenCode version is compatible.
+0.1.0, targeting OpenCode 2.2.5. The release matrix requires read-only behavior on
+2.2.1–2.2.2 and full controls on supported V2 versions from 2.2.3 onward. Consult
+the exact release's test evidence; the API version floor is not a blanket claim
+that every future CLI is compatible. There are no maintained older release
+branches or guaranteed response times.
 
 ## Report a vulnerability privately
 
