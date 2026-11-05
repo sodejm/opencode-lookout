@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 — 2026-11-05
+
 ### Added
 
 - Native-style Lookout sidebar for agents, skills, plugins, commands, providers,
@@ -21,10 +23,21 @@
   unload an older installation using its own CLI before reinstalling.
 - Enabled strict checked JavaScript, typed catalog projections, and blocking lint.
 - Pinned patched glob/minimatch overrides for all affected dependency versions.
+- Aligned development Node declarations with Node 26 using `@types/node` 26.6.6.
+  Production-only offline CLI tests retain Node 22 and 24 coverage.
 - Added fail-closed OSS security checks, source-bound release evidence, dynamic
   Docker compatibility tests, and portable OpenCode/Copilot/VS Code guidance.
 - Matched native semantic status-dot colors and removed duplicate MCP browsing.
   Native MCP controls and existing extension-owned restrictions are unchanged.
+
+### Fixed
+
+- Validate opened configuration descriptors and bound reads against file growth,
+  hard-link changes, and stale permission metadata; reject FIFOs and final symlinks.
+- Install runtime-test dependencies with npm 11.19.1 to preserve patched overrides
+  that npm 10 misresolves. Encode complete registry URL components.
+- Extract checksum-verified rules from memory into fresh directories and distinguish
+  informational CodeQL diagnostics from findings without severity waivers.
 
 ### Validation
 
