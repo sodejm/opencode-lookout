@@ -15,8 +15,14 @@
 
 ### Changed
 
-- Renamed the project from Control Center to OpenCode Lookout. Existing plugin
-  IDs, RPCs, commands, ownership markers, and recovery filenames remain compatible.
+- Standardized product and machine-facing names on Lookout: `opencode-lookout`
+  plugin/RPC ID, `/lookout`, `bin/lookout.mjs`, and `lookout:` ownership markers.
+  This is a deliberate breaking rename, without legacy aliases. Restore and
+  unload an older installation using its own CLI before reinstalling.
+- Enabled strict checked JavaScript, typed catalog projections, and blocking lint.
+- Pinned patched glob/minimatch overrides for all affected dependency versions.
+- Added fail-closed OSS security checks, source-bound release evidence, dynamic
+  Docker compatibility tests, and portable OpenCode/Copilot/VS Code guidance.
 - Matched native semantic status-dot colors and removed duplicate MCP browsing.
   Native MCP controls and existing extension-owned restrictions are unchanged.
 

@@ -1,4 +1,4 @@
-import { open, lstat, readFile, rename, unlink } from "node:fs/promises";
+import { open, lstat, rename, unlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 import { change, owned, parseConfig, validateID } from "./config.mjs";
@@ -44,16 +44,16 @@ export async function readConfig(file) {
  * @returns {Promise<void>}
  */
 export async function atomicUpdate(file, expected, transform) {
-  const lockPath = file + ".cc-lock";
+  const lockPath = file + ".lookout-lock";
   let lock;
   try {
     lock = await open(lockPath, "wx", 0o600);
   } catch {
     throw new Error(
-      "Another Control Center write is in progress; retry or inspect the stale lock.",
+      "Another Lookout write is in progress; retry or inspect the stale lock.",
     );
   }
-  const temp = file + `.cc-${randomUUID()}.tmp`;
+  const temp = file + `.lookout-${randomUUID()}.tmp`;
   try {
     const { text, mode } = await readConfig(file);
     if (expected && fingerprint(text) !== expected)
@@ -92,10 +92,15 @@ export class Controller {
     this.file = file;
     this.catalog = catalog;
     this.now = now;
+    /** @type {Map<string, {input: import('./types').ChangeRequest, hash: string, expires: number}>} */
     this.pending = new Map();
+    /** @type {Array<import('./types').ChangeRequest & {time:string}>} */
     this.history = [];
   }
-  /** Recheck both the requested kind and current ownership or eligibility. */
+  /** Recheck both the requested kind and current ownership or eligibility.
+   * @param {import('./types').ChangeRequest} input Candidate change, revalidated at runtime.
+   * @param {string} text Current configuration.
+   */
   async authorize(input, text) {
     const { kind, id, enabled } = input;
     validateID(id);
@@ -117,7 +122,9 @@ export class Controller {
         );
     }
   }
-  /** Validate without writing; issue one token bound to the request and file version. */
+  /** Validate without writing; issue one token bound to the request and file version.
+   * @param {import('./types').ChangeRequest} input Requested resource restriction.
+   */
   async preview(input) {
     const { text } = await readConfig(this.file);
     await this.authorize(input, text);
@@ -131,10 +138,12 @@ export class Controller {
     });
     return {
       token,
-      summary: `${input.enabled ? "Remove Control Center restriction for" : "Disable"} ${input.kind} ${input.id}. Scope: global, every project using this server.\n${input.enabled ? "Other restrictions remain in force; this does not grant access." : "Existing conversations retain previously loaded content. Changes may affect other sessions."}\nOnly an exact-ID ${input.kind === "plugin" ? "plugin entry" : "deny policy"} is changed. OpenCode reloads configuration automatically.`,
+      summary: `${input.enabled ? "Remove Lookout restriction for" : "Disable"} ${input.kind} ${input.id}. Scope: global, every project using this server.\n${input.enabled ? "Other restrictions remain in force; this does not grant access." : "Existing conversations retain previously loaded content. Changes may affect other sessions."}\nOnly an exact-ID ${input.kind === "plugin" ? "plugin entry" : "deny policy"} is changed. OpenCode reloads configuration automatically.`,
     };
   }
-  /** Consume a preview once, revalidate eligibility, and save only that change. */
+  /** Consume a preview once, revalidate eligibility, and save only that change.
+   * @param {string} token One-use preview token.
+   */
   async apply(token) {
     const request = this.pending.get(token);
     this.pending.delete(token);

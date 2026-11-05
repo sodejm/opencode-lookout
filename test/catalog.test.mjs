@@ -7,7 +7,7 @@ const scope = {
   home: "/home/test",
   config: { mcp: { local: { type: "local" } } },
 };
-test("Control Center omits MCP from every display view without changing recovery rows", () => {
+test("Lookout omits MCP from every display view without changing recovery rows", () => {
   const rows = mergeOwned(
     normalize("skill", [{ id: "fixture", name: "Fixture" }], scope),
     [{ kind: "mcp", id: "legacy" }],
@@ -38,12 +38,7 @@ test("status dots distinguish availability, attention, failure and disabled stat
     "restricted; still listed",
   ])
     assert.equal(statusTone({ status }), "warning");
-  for (const status of [
-    "disabled",
-    "disabled (Control Center)",
-    "hidden",
-    "inactive",
-  ])
+  for (const status of ["disabled", "disabled (Lookout)", "hidden", "inactive"])
     assert.equal(statusTone({ status }), "muted");
   assert.equal(statusTone({ status: "failed" }), "error");
   assert.equal(statusTone({ status: "future-status" }), "muted");
@@ -144,7 +139,7 @@ test("own disabled rows remain recoverable and do not falsely claim effective di
     ],
   );
   assert.equal(rows[0].status, "restricted; still listed");
-  assert.equal(rows[1].status, "disabled (Control Center)");
+  assert.equal(rows[1].status, "disabled (Lookout)");
   assert(rows.every((r) => r.owned && r.manageable));
 });
 test("search, state and category filters compose; duplicate labels and regex punctuation are safe", () => {

@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   check:
-    name: Check (Node ${{ matrix.node }})
+    name: Runtime (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -26,5 +26,64 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           package-manager-cache: false
+      - run: npm ci --ignore-scripts --omit=dev
+      - run: npm test
+  quality:
+    name: Quality (Node 26)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          package-manager-cache: false
       - run: npm ci --ignore-scripts
       - run: make check
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - run: bash scripts/install-ci-scanners.sh
+      - run: actionlint
+      - run: npm run security
+  compatibility:
+    name: Compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          package-manager-cache: false
+      - run: npm ci --ignore-scripts
+      - run: npm run test:compatibility
+  release-gate:
+    name: Release gate
+    if: ${{ always() }}
+    needs: [check, quality, security, compatibility]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every job to succeed
+        env:
+          RUNTIME: ${{ needs.check.result }}
+          QUALITY: ${{ needs.quality.result }}
+          SECURITY: ${{ needs.security.result }}
+          COMPATIBILITY: ${{ needs.compatibility.result }}
+        run: test "$RUNTIME" = success && test "$QUALITY" = success && test "$SECURITY" = success && test "$COMPATIBILITY" = success

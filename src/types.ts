@@ -27,7 +27,32 @@ export interface ChangeRequest {
   enabled: boolean;
 }
 
+/** One-use confirmation token; expires after 60 seconds and is bound to config bytes. */
 export interface Preview {
   token: string;
   summary: string;
+}
+
+/** Minimal public V2 catalog projection consumed by normalization, never serialized wholesale. */
+export interface CatalogEntry {
+  id?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  hidden?: boolean;
+  mode?: string;
+  model?: { providerID: string; id: string; variant?: string };
+  path?: string;
+  autoinvoke?: boolean;
+  source?: { type: string; path?: string };
+  state?: { status: string };
+  features?: Record<string, boolean | undefined>;
+  status?: string | { status: string };
+  integrationID?: string;
+  activation?: string;
+  providerID?: string;
+  enabled?: boolean;
+  variants?: { id: string }[];
+  limit?: { context?: number; output?: number };
+  capabilities?: { tools?: boolean };
 }

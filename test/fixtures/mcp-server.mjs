@@ -9,7 +9,7 @@ input.on("line", (line) => {
       ? {
           protocolVersion: request.params.protocolVersion,
           capabilities: { tools: {} },
-          serverInfo: { name: "control-center-fixture", version: "1.0.0" },
+          serverInfo: { name: "lookout-fixture", version: "1.0.0" },
         }
       : request.method === "tools/list"
         ? { tools: [] }

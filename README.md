@@ -9,9 +9,15 @@ existing sidebar. It does not replace Context or MCP status.
 Use OpenCode's native MCP section or `/mcps` for MCP inventory and controls.
 
 Lookout is an independent community extension, not an official OpenCode product.
-It targets OpenCode **2.2.5** and Node.js **22 or later**. The repository is public
+It targets OpenCode **2.2.5**. Use Node.js **26.4.0+** for a full development install;
+the offline CLI also supports **22.22.2+ or 24.15.0+** with production dependencies.
+The repository is public
 under the MIT license; the package remains `private: true` to prevent accidental
 npm publication. Compatibility with other OpenCode versions is not established.
+
+Resource controls require the current V2 policy API (OpenCode 2.2.3+). Older or
+unidentified hosts show a read-only inventory. Release tests require verified
+read-only behavior on 2.2.1–2.2.2 and full controls on newer supported V2 hosts.
 
 ## Install
 
@@ -22,7 +28,7 @@ git clone https://github.com/sodejm/opencode-lookout.git
 cd opencode-lookout
 npm ci --ignore-scripts
 make check
-node bin/control-center.mjs load
+node bin/lookout.mjs load
 ```
 
 Create your global OpenCode configuration through OpenCode first if it does not
@@ -30,20 +36,21 @@ exist. Lookout requires exactly one `opencode.json` or `opencode.jsonc` there;
 it will not create a new config or choose between two files. Keep the checkout
 at its installed path, because the load entry refers to that directory.
 
-**Existing installations:** do not clone a second instance. Update your existing
-checkout and use `/reload`. The plugin/RPC ID `personal.control-center`, command
-`/control-center`, recovery filename, storage keys, and `cc:` ownership markers
-remain stable. Some restriction and error messages still use **Control Center**,
-the extension's original name. No configuration migration is required.
+**Breaking rename:** this revision uses `opencode-lookout` as the plugin/RPC ID,
+`/lookout` as the command, and `lookout:` ownership markers. There are no legacy
+aliases. Before replacing an older installation, use its own recovery CLI to
+restore its restrictions and unload it. Do not run both copies. Reinstall only
+after the remote release is complete; pins and collapsed sections start fresh.
+The new CLI does not claim or remove old ownership blocks.
 
 ## Load or unload
 
 Run these commands **from this package's directory**, outside OpenCode:
 
 ```sh
-node bin/control-center.mjs load
-node bin/control-center.mjs status
-node bin/control-center.mjs unload
+node bin/lookout.mjs load
+node bin/lookout.mjs status
+node bin/lookout.mjs unload
 ```
 
 The commands work without the extension, server, or TUI running. They change one
@@ -52,22 +59,22 @@ choose between those files if both exist. They respect `XDG_CONFIG_HOME`.
 
 OpenCode watches configuration changes. Use `/reload` if the UI has not updated.
 `status` reports the configuration on disk, **not** whether the extension loaded.
-Check `opencode plugin list` and open `/control-center` to verify both parts.
+Check `opencode plugin list` and open `/lookout` to verify both parts.
 
 Unloading keeps resource restrictions in place. Removing a UI must not silently
 restore tool access. To remove restrictions created by this extension:
 
 ```sh
-node bin/control-center.mjs restore --yes
+node bin/lookout.mjs restore --yes
 ```
 
-This affects all projects using the server. It removes only marked Control Center
+This affects all projects using the server. It removes only marked Lookout
 entries. Existing permissions, policies, credentials, and plugin entries remain.
 
 ## Browse the catalog
 
-Run `/control-center`, or choose **Open Lookout** in the command palette.
-Use `/control-center skill` to start with one category. Category names are `agent`,
+Run `/lookout`, or choose **Open Lookout** in the command palette.
+Use `/lookout skill` to start with one category. Category names are `agent`,
 `skill`, `plugin`, `command`, `provider`, and `model`.
 
 The catalog uses OpenCode's native searchable dialogs:
@@ -82,14 +89,14 @@ The catalog uses OpenCode's native searchable dialogs:
 | Return or close | Escape |
 
 Selecting an item opens its action menu. **Show details** opens a read-only
-inspector; Escape closes it back to the prompt. Run `/control-center` again to
+inspector; Escape closes it back to the prompt. Run `/lookout` again to
 browse another item.
 
 Sidebar headings expand or collapse on click. Each expanded category shows up to
 three entries. Select an item and choose **Pin to sidebar** to choose which entries
 appear. Pins and collapsed sections are terminal presentation preferences; they
 do not enable or disable resources. Keyboard-only users can access every resource
-and action through `/control-center`, even when the terminal hides the sidebar.
+and action through `/lookout`, even when the terminal hides the sidebar.
 
 Status dots use the native sidebar's semantic theme colors: green for available
 or active entries, yellow for pending, stale, unknown, or still-listed restrictions,
@@ -130,13 +137,13 @@ work to finish before changing resources it may use.
 
 **Enable** removes this extension's denial. It never adds an `allow`, removes an
 external restriction, or overrides managed policy. A missing resource stays in
-the catalog as a disabled row when Control Center owns its restriction, so you can
+the catalog as a disabled row when Lookout owns its restriction, so you can
 restore it after a reload or restart.
 
-Older Control Center MCP restrictions are preserved, not silently removed when
-the inventory is hidden. Use the external `restore --yes` command to remove all
-Control Center restrictions, including those MCP entries. The legacy MCP RPC
-contract remains available for compatibility; it is not exposed in the browser.
+Lookout MCP restrictions are preserved, not silently removed when the inventory
+is hidden. Use the external `restore --yes` command to remove all Lookout
+restrictions, including MCP entries. The MCP RPC contract remains available for
+recovery; it is not exposed in the browser.
 
 **Restricted; still listed** means the config entry exists but the live catalog
 still includes the resource. Do not interpret that state as successful blocking.
@@ -146,14 +153,14 @@ remove instructions already loaded into an existing conversation.
 
 ## Troubleshoot
 
-1. Run `node bin/control-center.mjs status` to inspect the load entry and owned
+1. Run `node bin/lookout.mjs status` to inspect the load entry and owned
    restriction count. No credentials are needed.
-2. Run `node bin/control-center.mjs unload` to remove both extension parts from
+2. Run `node bin/lookout.mjs unload` to remove both extension parts from
    configuration. The package lives outside automatic plugin discovery.
 3. Use `/reload`. If only the terminal is unusable, open a terminal without its UI:
 
    ```sh
-   OPENCODE_CLI_CONFIG_CONTENT='{"plugins":["*","-personal.control-center"]}' opencode
+    OPENCODE_CLI_CONFIG_CONTENT='{"plugins":["*","-opencode-lookout"]}' opencode
    ```
 
    This suppresses only the TUI part for that process. Use `unload` for the server
@@ -161,12 +168,12 @@ remove instructions already loaded into an existing conversation.
 4. Fix the failure, run `make check`, and use `load` to re-enable the extension.
 
 If an apply request loses its response during configuration reload, refresh before
-retrying: the write might already have succeeded. If a `.cc-lock` file remains
-after a crash, first ensure no Control Center command is running. Inspect the lock
+retrying: the write might already have succeeded. If a `.lookout-lock` file remains
+after a crash, first ensure no Lookout command is running. Inspect the lock
 beside your global config, then remove that lock manually and retry. Never delete
 the global configuration to clear a lock.
 
-Do not edit text inside `cc:begin` / `cc:end` ownership markers. The controller
+Do not edit text inside `lookout:begin` / `lookout:end` ownership markers. The controller
 rejects modified blocks rather than risk deleting your edits. Unload still works
 without calling the server. Preserve the file and repair the marked block manually
 if normal restore cannot parse it.
@@ -178,12 +185,12 @@ npm ci --ignore-scripts
 make check
 npm run test:integration
 npm run test:tui
-CC_TUI=1 CC_NARROW=1 CC_THEME=tokyonight npm run test:integration
+LOOKOUT_TUI=1 LOOKOUT_NARROW=1 LOOKOUT_THEME=tokyonight npm run test:integration
 ```
 
 The integration checks require the `opencode` executable. Terminal checks also
 require `/usr/bin/expect`. They use a temporary HOME and deny provider and tool
-use. Set `CC_KEEP_FIXTURE=1` to retain a failed fixture for local inspection; do not
+use. Set `LOOKOUT_KEEP_FIXTURE=1` to retain a failed fixture for local inspection; do not
 share its credential files or raw terminal transcript.
 
 See [Architecture](docs/ARCHITECTURE.md) for module boundaries and configuration

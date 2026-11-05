@@ -4,11 +4,12 @@ import type { PluginInfo } from "@opencode/client";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { access } from "node:fs/promises";
-import { ControlCenter } from "./rpc";
+import { Lookout } from "./rpc";
 import { ID, owned, parseConfig } from "./config.mjs";
 import { Controller, readConfig } from "./controller.mjs";
 import { KINDS, normalize, mergeOwned } from "./catalog.mjs";
 import { pluginDescription } from "./plugin-description.mjs";
+import { supportsPolicyAPI } from "./compatibility.mjs";
 import type { ChangeRequest, Row, Snapshot } from "./types";
 
 /** Never return filesystem errors with paths, or provider errors with payloads. */
@@ -43,6 +44,10 @@ export default Plugin.define({
     /** Independent collection failures retain stale rows, but never permit edits. */
     async function snapshot(): Promise<Snapshot> {
       const errors: string[] = [];
+      if (!supportsPolicyAPI(ctx.app.version))
+        errors.push(
+          "Resource controls require OpenCode 2.2.3 or later (current policy API). This host is read-only.",
+        );
       let config = {},
         restrictions: { kind: string; id: string }[] = [];
       try {
@@ -119,11 +124,15 @@ export default Plugin.define({
         );
       return result.rows;
     });
-    const registration = await ctx.rpc.register(ControlCenter, {
+    const registration = await ctx.rpc.register(Lookout, {
       snapshot: async () => snapshot(),
       preview: async (input, call) => {
         try {
-          if (disposed || files.length !== 1)
+          if (
+            disposed ||
+            files.length !== 1 ||
+            !supportsPolicyAPI(ctx.app.version)
+          )
             throw new Error("Configuration controller is unavailable.");
           return await controller.preview(input as ChangeRequest);
         } catch (e) {

@@ -26,7 +26,7 @@ reporters who want attribution. Automated checks are not security certification.
 
 ## Safe recovery
 
-From the installed checkout, run `node bin/control-center.mjs unload`. This works
+From the installed checkout, run `node bin/lookout.mjs unload`. This works
 without OpenCode and preserves resource restrictions. Use `restore --yes` only
 when you intend to remove all restrictions owned by this extension. Never delete
 the global configuration to recover. See the [recovery guide](README.md#troubleshoot).

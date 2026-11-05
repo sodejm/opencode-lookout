@@ -1,0 +1,63 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Lookout: install",
+      "type": "process",
+      "command": "npm",
+      "args": ["ci", "--ignore-scripts"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Lookout: check",
+      "type": "process",
+      "command": "npm",
+      "args": ["run", "check"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Lookout: unit tests",
+      "type": "process",
+      "command": "npm",
+      "args": ["test"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Lookout: lint",
+      "type": "process",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Lookout: integration",
+      "type": "process",
+      "command": "npm",
+      "args": ["run", "test:integration"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Lookout: Docker compatibility",
+      "type": "process",
+      "command": "npm",
+      "args": ["run", "test:compatibility"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Lookout: security",
+      "type": "process",
+      "command": "npm",
+      "args": ["run", "security"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Lookout: release assessment",
+      "type": "process",
+      "command": "npm",
+      "args": ["run", "release:check"],
+      "problemMatcher": []
+    }
+  ]
+}

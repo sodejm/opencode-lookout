@@ -6,5 +6,7 @@ test-artifacts/
 .env.*
 !.env.example
 .DS_Store
-*.cc-lock
-*.cc-*.tmp
+*.lookout-lock
+*.lookout-*.tmp
+release-evidence/
+.build/

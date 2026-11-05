@@ -15,7 +15,7 @@ export const KINDS = [
 export const BROWSE_KINDS = KINDS.filter((kind) => kind !== "mcp");
 
 /**
- * Limit all Control Center views, including search and saved pins, to its categories.
+ * Limit all Lookout views, including search and saved pins, to its categories.
  * @param {Array<import('./types').Row>} rows Unmodified server snapshot.
  * @returns {Array<import('./types').Row>} Rows for the sidebar and browser.
  */
@@ -53,16 +53,23 @@ export function statusTone(row, stale = false) {
  * @returns {string} Plain text with no C0/C1 control characters.
  */
 export function text(value, limit = 400) {
-  return String(value ?? "")
-    .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "")
-    .replace(/[\x00-\x1f\x7f-\x9f]/g, " ")
-    .slice(0, limit);
+  return (
+    String(value ?? "")
+      // ANSI and C0/C1 removal is intentional security filtering, not a regex typo.
+      // eslint-disable-next-line no-control-regex
+      .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "")
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1f\x7f-\x9f]/g, " ")
+      .slice(0, limit)
+  );
 }
+/** @param {string | undefined} file Catalog path. @param {string} root Trusted source root. */
 function inside(file, root) {
-  if (!isAbsolute(file ?? "") || !isAbsolute(root ?? "")) return false;
+  if (!file || !isAbsolute(file) || !isAbsolute(root)) return false;
   const r = relative(root, file);
   return !r.startsWith("..") && !isAbsolute(r);
 }
+/** @param {string} id Catalog ID, validated before use in a policy. */
 function exact(id) {
   try {
     validateID(id);
@@ -76,30 +83,44 @@ function exact(id) {
  * omit prompts, skill bodies, credentials, request headers, and MCP commands.
  * Management is limited to resources explicitly sourced from this user's config.
  * @param {string} kind Catalog category from KINDS.
- * @param {Array<any>} entries Public V2 records for that category.
- * @param {{configDir:string,home:string,config?:any}} scope Trusted local source boundaries.
+ * @param {import('./types').CatalogEntry[]} entries Minimal public V2 record projection.
+ * @param {{configDir:string,home:string,config?:Record<string, unknown>}} scope Trusted local source boundaries.
  * @returns {Array<import('./types').Row>} Sanitized display and management metadata.
  */
 export function normalize(kind, entries, { configDir, home, config = {} }) {
+  const skills = config.skills;
+  const paths = Array.isArray(skills)
+    ? skills
+    : skills &&
+        typeof skills === "object" &&
+        "paths" in skills &&
+        Array.isArray(skills.paths)
+      ? skills.paths
+      : [];
   const roots = [
     resolve(configDir, "skills"),
     resolve(home, ".agents/skills"),
     resolve(home, ".claude/skills"),
-    ...(Array.isArray(config.skills)
-      ? config.skills
-      : (config.skills?.paths ?? [])
-    )
+    ...paths
       .filter(
-        (p) => typeof p === "string" && (isAbsolute(p) || p.startsWith("~/")),
+        (/** @type {string} */ p) =>
+          typeof p === "string" && (isAbsolute(p) || p.startsWith("~/")),
       )
-      .map((p) => (p.startsWith("~/") ? resolve(home, p.slice(2)) : p)),
+      .map((/** @type {string} */ p) =>
+        p.startsWith("~/") ? resolve(home, p.slice(2)) : p,
+      ),
   ];
-  const localMcp = config.mcp?.servers ?? config.mcp ?? {};
+  const mcp = config.mcp && typeof config.mcp === "object" ? config.mcp : {};
+  const localMcp =
+    "servers" in mcp && mcp.servers && typeof mcp.servers === "object"
+      ? mcp.servers
+      : mcp;
   return entries.map((item, index) => {
     const id =
       kind === "model"
         ? `${item.providerID}/${item.id}`
         : (item.id ?? item.name ?? `unidentified-${index}`);
+    /** @type {import('./types').Row} */
     const row = {
       kind,
       id,
@@ -136,7 +157,7 @@ export function normalize(kind, entries, { configDir, home, config = {} }) {
       row.details = [
         `Parts: ${
           Object.keys(item.features ?? {})
-            .filter((k) => item.features[k])
+            .filter((k) => item.features?.[k])
             .join(", ") || "unknown"
         }`,
       ];
@@ -149,7 +170,8 @@ export function normalize(kind, entries, { configDir, home, config = {} }) {
       if (item.source?.type === "builtin")
         row.reason = "Built-in plugins are protected in this extension.";
     } else if (kind === "mcp") {
-      row.status = item.status?.status ?? "unknown";
+      row.status =
+        typeof item.status === "object" ? item.status.status : "unknown";
       row.source =
         Object.hasOwn(localMcp, id) && !item.integrationID
           ? "Global configuration"
@@ -164,7 +186,7 @@ export function normalize(kind, entries, { configDir, home, config = {} }) {
     } else if (kind === "model") {
       row.status = item.enabled === false ? "disabled" : "available";
       row.details = [
-        `Variants: ${(item.variants ?? []).map((v) => text(v.id)).join(", ") || "default"}`,
+        `Variants: ${(item.variants ?? []).map((/** @type {{id:string}} */ v) => text(v.id)).join(", ") || "default"}`,
         `Context: ${item.limit?.context ?? "unknown"}; output: ${item.limit?.output ?? "unknown"}`,
         `Tools: ${item.capabilities?.tools ? "yes" : "no"}`,
       ];
@@ -192,7 +214,7 @@ export function mergeOwned(rows, restrictions) {
         label: text(id),
         description: kind === "plugin" ? "missing description" : "",
         status: "not listed",
-        source: "Control Center restriction",
+        source: "Lookout restriction",
         details: [],
         manageable: true,
         owned: true,
@@ -203,10 +225,10 @@ export function mergeOwned(rows, restrictions) {
     row.owned = true;
     row.manageable = true;
     row.status = ["not listed", "disabled"].includes(row.status)
-      ? "disabled (Control Center)"
+      ? "disabled (Lookout)"
       : "restricted; still listed";
     row.reason =
-      "Enable removes only the Control Center restriction. Other rules or unavailable sources may still block this item.";
+      "Enable removes only the Lookout restriction. Other rules or unavailable sources may still block this item.";
   }
   return result;
 }

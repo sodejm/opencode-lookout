@@ -1,5 +1,15 @@
 # Architecture
 
+## Release tooling boundary
+
+`scripts/release-policy.mjs` contains pure report, freshness, and compatibility
+validation. `security.mjs` owns scanner execution, pinned rule acquisition, and
+full-history/working-tree scans. `compatibility.mjs` owns version discovery,
+artifact-bound Docker builds, terminal tests, and fixture cleanup.
+`release-check.mjs` requires a clean source revision and fresh matching receipts,
+reruns quality checks, and writes a local assessment. None of these scripts
+publishes packages or changes user configuration. CI runs the same entry points.
+
 ## Boundaries
 
 `src/tui.tsx` contributes to `sidebar.content` and uses native select and confirmation
@@ -36,26 +46,26 @@ resource has disappeared from the catalog. A random, single-use token binds the 
 `src/config.mjs` owns exact-ID entries in marked array regions. Enabling removes
 an owned entry; it never creates an overriding allow rule.
 
-`bin/control-center.mjs` is the independent recovery path. It requires only Node.js
+`bin/lookout.mjs` is the independent recovery path. It requires only Node.js
 and the package's installed JSONC parser, not a working OpenCode process.
 
 ## Configuration ownership
 
-OpenCode does not discover an arbitrary `control-center.jsonc`, so controls use
+OpenCode does not discover an arbitrary `lookout.jsonc`, so controls use
 the existing global configuration. The controller writes only `policies` and
 `plugins` arrays. JSONC syntax-tree validation rejects duplicate keys, damaged
 ownership markers, and unexpected entry shapes. If an array already exists,
 removing its managed block restores the original bytes. If the controller creates
 an array, restoring its entries leaves an empty array.
 
-Plugin load/unload uses a separate `cc:lifecycle` marker. Unload replaces the
-package path with `-personal.control-center`. It does not remove resource-denial
+Plugin load/unload uses a separate `lookout:lifecycle` marker. Unload replaces the
+package path with `-opencode-lookout`. It does not remove resource-denial
 blocks. The source directory is outside `plugins/`, so removing the load entry
 actually stops discovery. Do not copy a second instance into `plugins/`.
 
 Writes use an exclusive lock, a same-directory temporary file, flush, fingerprint
 recheck, and atomic rename. The controller rejects symlinked or hard-linked files.
-A lock serializes Control Center writers. An unrelated editor does not participate
+A lock serializes Lookout writers. An unrelated editor does not participate
 in that lock: a small race remains between the final check and rename. Avoid
 editing global config while confirming a change.
 

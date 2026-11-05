@@ -9,8 +9,8 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "types": ["node"]
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "bin/**/*.mjs", "scripts/*.mjs"]
 }

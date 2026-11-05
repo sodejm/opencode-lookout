@@ -18,9 +18,18 @@ const required = [
 ];
 for (const file of required) await access(resolve(root, file));
 
+/** @param {string} directory Repository directory to inspect without following symlinks. */
 async function check(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if ([".git", "node_modules", "test-artifacts"].includes(entry.name))
+    if (
+      [
+        ".git",
+        "node_modules",
+        "test-artifacts",
+        "release-evidence",
+        ".build",
+      ].includes(entry.name)
+    )
       continue;
     const path = resolve(directory, entry.name);
     if (entry.isDirectory()) await check(path);

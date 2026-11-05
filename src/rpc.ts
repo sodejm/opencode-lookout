@@ -1,11 +1,12 @@
 import { Rpc } from "@opencode/plugin/rpc";
+import { ID } from "./config.mjs";
 
 const rejected = {
   rejected: { type: "object", properties: {}, additionalProperties: false },
 } as const;
 /** Authenticated server RPC only. No agent tool or arbitrary-path write endpoint. */
-export const ControlCenter = Rpc.define({
-  id: "personal.control-center",
+export const Lookout = Rpc.define({
+  id: ID,
   events: {},
   methods: {
     snapshot: {

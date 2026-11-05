@@ -1,7 +1,7 @@
 /**
  * Exercise real OpenCode without personal credentials or inference requests.
  * Every mutation targets a temporary HOME/XDG fixture. The child server is stopped
- * in finally; fixture files are retained only when CC_KEEP_FIXTURE=1 is requested.
+ * in finally; fixture files are retained only when LOOKOUT_KEEP_FIXTURE=1 is requested.
  */
 import assert from "node:assert/strict";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import { lifecycle, owned } from "../src/config.mjs";
 
 const packageDir = resolve(fileURLToPath(new URL("../", import.meta.url)));
-const root = await mkdtemp(join(tmpdir(), "opencode-control-center-"));
+const root = await mkdtemp(join(tmpdir(), "opencode-lookout-"));
 const configDir = join(root, "config/opencode"),
   project = join(root, "project");
 await mkdir(join(configDir, "skills/fixture-skill"), { recursive: true });
@@ -60,7 +60,7 @@ await writeFile(
 await writeFile(
   join(configDir, "cli.json"),
   JSON.stringify({
-    theme: { name: process.env.CC_THEME || "carbonfox" },
+    theme: { name: process.env.LOOKOUT_THEME || "carbonfox" },
     session: { sidebar: "auto" },
     highlights: false,
   }),
@@ -75,12 +75,27 @@ const env = {
   TERM: "xterm-256color",
   LANG: "en_US.UTF-8",
 };
+const cliVersion = execFileSync("opencode", ["--version"], {
+  env,
+  encoding: "utf8",
+})
+  .trim()
+  .replace(/^opencode v/, "");
+if (process.env.LOOKOUT_EXPECTED_VERSION)
+  assert.equal(
+    cliVersion,
+    process.env.LOOKOUT_EXPECTED_VERSION,
+    "tested binary must match the requested artifact",
+  );
+// Deliberately explicit: unknown future versions do not become accepted read-only skips.
+const readOnly = ["2.2.1", "2.2.2"].includes(cliVersion);
 const server = spawn(
   "opencode",
   ["serve", "--hostname", "127.0.0.1", "--port", "0"],
   { cwd: project, env, stdio: ["ignore", "pipe", "pipe"] },
 );
 let output = "";
+let lastRows = [];
 server.stdout.on("data", (chunk) => (output += chunk));
 server.stderr.on("data", (chunk) => (output += chunk));
 async function until(fn, label, timeout = 30_000) {
@@ -130,11 +145,26 @@ try {
   };
   const rpc = async (method, input = {}) =>
     (
-      await request(`/api/rpc/personal.control-center/${method}`, "POST", {
+      await request(`/api/rpc/opencode-lookout/${method}`, "POST", {
         input,
       })
     ).output;
-  const snapshot = () => rpc("snapshot");
+  const snapshot = async () => {
+    const result = await rpc("snapshot");
+    // Allowlisted fixture diagnostics only; never print config or API payloads.
+    lastRows = (result.rows ?? [])
+      .filter((r) =>
+        ["fixture-skill", "fixture", "fixture.widget"].includes(r.id),
+      )
+      .map(({ kind, id, status, owned, manageable }) => ({
+        kind,
+        id,
+        status,
+        owned,
+        manageable,
+      }));
+    return result;
+  };
   const first = await until(
     async () => {
       const s = await snapshot();
@@ -143,13 +173,17 @@ try {
     "extension registration",
     60_000,
   );
-  assert.deepEqual(first.errors, []);
+  if (readOnly) {
+    assert.equal(first.errors.length, 1);
+    assert.match(first.errors[0], /current policy API.*read-only/);
+    assert(first.rows.every((row) => row.manageable === false));
+  } else assert.deepEqual(first.errors, []);
   assert.equal(
     first.rows.find((r) => r.id === "fixture.widget").description,
     "Offline fixture plugin.",
   );
   assert.notEqual(
-    first.rows.find((r) => r.id === "personal.control-center").description,
+    first.rows.find((r) => r.id === "opencode-lookout").description,
     "missing description",
   );
   assert.equal(
@@ -162,6 +196,19 @@ try {
     ["plugin", "fixture.widget"],
   ]) {
     const row = first.rows.find((r) => r.kind === kind && r.id === id);
+    if (readOnly) {
+      assert(
+        row && !row.manageable,
+        `${kind} fixture must remain visible but read-only`,
+      );
+      await assert.rejects(rpc("preview", { kind, id, enabled: false }));
+      await assert.rejects(rpc("preview", { kind, id, enabled: true }));
+      await assert.rejects(rpc("apply", { token: "unsupported-host" }));
+      console.log(
+        `PASS ${kind}: read-only inventory; enable/disable/apply rejected`,
+      );
+      continue;
+    }
     assert(row?.manageable, `${kind} fixture must be manageable`);
     const preview = await rpc("preview", { kind, id, enabled: false });
     assert(preview.token);
@@ -170,7 +217,7 @@ try {
     const disabled = await until(async () => {
       const s = await snapshot();
       return s.rows.find((r) => r.kind === kind && r.id === id)?.status ===
-        "disabled (Control Center)"
+        "disabled (Lookout)"
         ? s
         : false;
     }, `${kind} effective disable`);
@@ -207,13 +254,13 @@ try {
   const cli = (command) =>
     execFileSync(
       process.execPath,
-      [join(packageDir, "bin/control-center.mjs"), command],
+      [join(packageDir, "bin/lookout.mjs"), command],
       { cwd: project, env, encoding: "utf8" },
     );
   cli("unload");
   await request("/api/location/reload", "POST");
   const unloaded = (await request("/api/plugin")).data;
-  assert(!unloaded.some((p) => p.id === "personal.control-center"));
+  assert(!unloaded.some((p) => p.id === "opencode-lookout"));
   await assert.rejects(snapshot());
   cli("load");
   await request("/api/location/reload", "POST");
@@ -221,7 +268,7 @@ try {
   console.log("PASS offline unload removes RPC; load restores it");
 
   // Optional real terminal exercise. No prompt is submitted to a model.
-  if (process.env.CC_TUI === "1") {
+  if (process.env.LOOKOUT_TUI === "1") {
     const session = await request("/api/session", "POST", {});
     await writeFile(join(root, "session.json"), JSON.stringify(session));
     const id = session.id ?? session.data?.id;
@@ -234,7 +281,8 @@ try {
         url,
         id,
         transcript,
-        process.env.CC_NARROW || "0",
+        process.env.LOOKOUT_NARROW || "0",
+        readOnly ? "1" : "0",
       ],
       { cwd: project, env, timeout: 90_000, stdio: "pipe" },
     );
@@ -247,19 +295,19 @@ try {
     assert(!terminal.includes("TUI plugin failed"), "no plugin load failure");
     assert(
       !terminal.includes("MCP servers"),
-      "no duplicate MCP inventory in Control Center",
+      "no duplicate MCP inventory in Lookout",
     );
-    if (process.env.CC_NARROW !== "1")
+    if (process.env.LOOKOUT_NARROW !== "1")
       assert(
         terminal.includes("Connected"),
         "native MCP status remains visible",
       );
-    if (process.env.CC_NARROW !== "1")
+    if (process.env.LOOKOUT_NARROW !== "1")
       assert(
         terminal.includes("Offline fixture plugin."),
         "sidebar description comes from the fixture plugin file",
       );
-    if (process.env.CC_NARROW !== "1")
+    if (process.env.LOOKOUT_NARROW !== "1")
       assert(
         terminal.includes("missing description"),
         "sidebar uses the exact fallback for undocumented plugins",
@@ -271,25 +319,35 @@ try {
       "terminal test must not incur inference cost",
     );
     const afterTui = owned(await readFile(file, "utf8"));
-    assert(
-      afterTui.some((r) => r.kind === "skill" && r.id === "fixture-skill"),
-      "TUI confirmation applied the skill restriction",
-    );
+    if (readOnly)
+      assert.equal(
+        afterTui.length,
+        0,
+        "read-only terminal cannot change restrictions",
+      );
+    else
+      assert(
+        afterTui.some((r) => r.kind === "skill" && r.id === "fixture-skill"),
+        "TUI confirmation applied the skill restriction",
+      );
     execFileSync(
       process.execPath,
-      [join(packageDir, "bin/control-center.mjs"), "restore", "--yes"],
+      [join(packageDir, "bin/lookout.mjs"), "restore", "--yes"],
       { cwd: project, env, encoding: "utf8" },
     );
     await request("/api/location/reload", "POST");
     assert.equal(owned(await readFile(file, "utf8")).length, 0);
     console.log(
-      "PASS terminal: sidebar, search/category filter, details, confirmed control, offline restore",
+      readOnly
+        ? "PASS terminal: read-only sidebar, search/category filter, details; no mutations"
+        : "PASS terminal: sidebar, search/category filter, details, confirmed control, offline restore",
     );
   }
   console.log(
     "PASS isolated integration; no personal credentials or inference used",
   );
 } catch (error) {
+  console.error("Last fixture statuses:", JSON.stringify(lastRows));
   console.error(
     output
       .replace(/server password \S+/g, "server password [redacted]")
@@ -301,7 +359,7 @@ try {
   await Promise.race([once(server, "exit"), delay(5000)]);
   if (server.exitCode === null && server.signalCode === null)
     server.kill("SIGKILL");
-  if (process.env.CC_KEEP_FIXTURE === "1")
+  if (process.env.LOOKOUT_KEEP_FIXTURE === "1")
     console.log(`Fixture retained: ${root}`);
   else await rm(root, { recursive: true, force: true });
 }

@@ -61,5 +61,7 @@ test("reject modified ownership blocks instead of deleting user edits", () => {
   assert.throws(() =>
     change(next.replace('"deny"', '"allow"'), "skill", "test", true),
   );
-  assert.throws(() => owned(next.replace("cc:end:policies", "cc:end:bad")));
+  assert.throws(() =>
+    owned(next.replace("lookout:end:policies", "lookout:end:bad")),
+  );
 });
