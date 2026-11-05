@@ -1,5 +1,12 @@
 # Threat model
 
+Configuration reads validate the opened descriptor rather than checking a path
+before opening it. No-follow and nonblocking flags reject final symlinks and
+avoid FIFO hangs. Reads are bounded even if a file grows after validation; link
+count, size, mode, and timestamps are rechecked before parsing. This does not
+protect against a hostile owner of the parent directory or remove the documented
+final-check/rename race with an uncooperative external editor.
+
 ## Release assurance boundary
 
 Release checks reject every configured finding, regardless of severity, as well

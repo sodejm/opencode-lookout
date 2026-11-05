@@ -1,4 +1,4 @@
-import { open, lstat, rename, unlink } from "node:fs/promises";
+import { open, rename, unlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 import { change, owned, parseConfig, validateID } from "./config.mjs";
@@ -12,22 +12,47 @@ export const fingerprint = (text) =>
  * @returns {Promise<{text: string, mode: number}>} Validated text and original mode.
  */
 export async function readConfig(file) {
-  const stat = await lstat(file);
-  if (
-    !stat.isFile() ||
-    stat.isSymbolicLink() ||
-    stat.nlink !== 1 ||
-    stat.size > 1024 * 1024
-  )
-    throw new Error(
-      "Configuration must be a regular, unlinked file smaller than 1 MiB.",
-    );
-  const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+  const limit = 1024 * 1024;
+  const invalid =
+    "Configuration must be a regular, unlinked file at most 1 MiB.";
+  // Validate the descriptor, not the path before open. NONBLOCK prevents a FIFO
+  // substituted at this path from hanging before we can reject its file type.
+  const handle = await open(
+    file,
+    constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+  ).catch((error) => {
+    if (error.code === "ELOOP") throw new Error(invalid, { cause: error });
+    throw error;
+  });
   try {
-    const actual = await handle.stat();
-    if (actual.ino !== stat.ino || actual.dev !== stat.dev)
+    const stat = await handle.stat();
+    if (!stat.isFile() || stat.nlink !== 1 || stat.size > limit)
+      throw new Error(invalid);
+    // A file may grow after fstat. Bound allocation and reads even in that case.
+    const bytes = Buffer.alloc(limit + 1);
+    let length = 0;
+    while (length < bytes.length) {
+      const { bytesRead } = await handle.read(
+        bytes,
+        length,
+        bytes.length - length,
+        length,
+      );
+      if (bytesRead === 0) break;
+      length += bytesRead;
+    }
+    if (length > limit) throw new Error(invalid);
+    const after = await handle.stat();
+    if (
+      length !== stat.size ||
+      after.size !== stat.size ||
+      after.nlink !== 1 ||
+      after.mode !== stat.mode ||
+      after.mtimeMs !== stat.mtimeMs ||
+      after.ctimeMs !== stat.ctimeMs
+    )
       throw new Error("Configuration changed; refresh and retry.");
-    const text = await handle.readFile("utf8");
+    const text = bytes.toString("utf8", 0, length);
     parseConfig(text);
     return { text, mode: stat.mode & 0o777 };
   } finally {

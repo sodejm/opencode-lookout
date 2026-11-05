@@ -67,6 +67,9 @@ actually stops discovery. Do not copy a second instance into `plugins/`.
 
 Writes use an exclusive lock, a same-directory temporary file, flush, fingerprint
 recheck, and atomic rename. The controller rejects symlinked or hard-linked files.
+Reads open with no-follow/nonblocking flags, validate the descriptor, and consume
+at most 1 MiB plus one overflow-detection byte. Descriptor metadata is rechecked
+after reading; path metadata from before open never determines safety or mode.
 A lock serializes Lookout writers. An unrelated editor does not participate
 in that lock: a small race remains between the final check and rename. Avoid
 editing global config while confirming a change.
