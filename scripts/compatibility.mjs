@@ -27,7 +27,7 @@ const cliPackage = `@opencode/cli-linux-${arch}`;
 const results = [];
 for (const version of targets) {
   const response = await fetch(
-    `https://registry.npmjs.org/${cliPackage.replace("/", "%2f")}/${version}`,
+    `https://registry.npmjs.org/${encodeURIComponent(cliPackage)}/${encodeURIComponent(version)}`,
     { signal: AbortSignal.timeout(30000) },
   );
   if (!response.ok) throw new Error(`Missing CLI artifact: ${version}`);

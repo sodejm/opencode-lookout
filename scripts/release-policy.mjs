@@ -90,7 +90,9 @@ export function scanClean(kind, report, exit) {
             throw new Error("Malformed CodeQL notifications");
           for (const notification of execution[key])
             if (record(notification).level !== "note")
-              throw new Error("CodeQL warning/error");
+              throw new Error(
+                `CodeQL warning/error: ${JSON.stringify(notification)}`,
+              );
         }
       }
     }

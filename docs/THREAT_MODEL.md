@@ -16,6 +16,11 @@ explicitly. Only generated output and separately audited dependency code are
 excluded. Downloaded rule fixtures are not project source and must not be scanned
 as if they were part of Lookout.
 
+Rule downloads are SHA-256 checked in memory before tar receives the same bytes
+on stdin. The archive is not saved to disk. Each run extracts into a fresh private
+directory, preventing stale rule files from changing the configured scan. A
+checksum mismatch or extraction failure aborts before any success receipt.
+
 Actions are SHA-pinned and use standard public runners. Repository access is
 read-only except CodeQL security-result uploads (`security-events: write`);
 CodeQL database uploads are disabled. Its Actions and JavaScript/TypeScript

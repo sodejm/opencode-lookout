@@ -1,10 +1,10 @@
 /** Pinned OSS scanners. Every finding, scanner error, or malformed report blocks. */
 import { spawnSync } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { createHash } from "node:crypto";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { scanClean } from "./release-policy.mjs";
 import { output, sourceDigest, sourceFiles } from "./release-io.mjs";
+import { extractVerifiedArchive } from "./verified-archive.mjs";
 
 const directory = "release-evidence";
 await mkdir(directory, { recursive: true });
@@ -29,23 +29,15 @@ for (const [
 const rulesCommit = "16b9e6d45f10649f6a531ec4838ed9924372c3bc";
 const rulesHash =
   "70b4e0adca0515de0a07c15341ce50ed76221ab2f7bc59baca25caebaa5664f6";
-await mkdir(".build/semgrep-rules", { recursive: true });
+await mkdir(".build", { recursive: true });
+const rulesDirectory = await mkdtemp(".build/semgrep-rules-");
 const response = await fetch(
   `https://api.github.com/repos/semgrep/semgrep-rules/tarball/${rulesCommit}`,
   { signal: AbortSignal.timeout(60000) },
 );
 if (!response.ok) throw new Error(`Rules download HTTP ${response.status}`);
 const archive = Buffer.from(await response.arrayBuffer());
-if (createHash("sha256").update(archive).digest("hex") !== rulesHash)
-  throw new Error("Semgrep rules checksum mismatch");
-await writeFile(".build/rules.tgz", archive);
-output("tar", [
-  "-xzf",
-  ".build/rules.tgz",
-  "-C",
-  ".build/semgrep-rules",
-  "--strip-components=1",
-]);
+extractVerifiedArchive(archive, rulesHash, rulesDirectory);
 
 /** @type {Array<{name:string, exit:number}>} */
 const checks = [];
@@ -85,7 +77,7 @@ await scan("semgrep", "semgrep", [
     "javascript/lang/security",
     "typescript/lang/security",
     "yaml/github-actions/security",
-  ].flatMap((path) => ["--config", `.build/semgrep-rules/${path}`]),
+  ].flatMap((path) => ["--config", `${rulesDirectory}/${path}`]),
   "--metrics",
   "off",
   "--disable-version-check",
