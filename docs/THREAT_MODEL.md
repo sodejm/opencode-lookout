@@ -1,5 +1,10 @@
 # Threat model
 
+The release-preparation dependency update changes only development declarations
+(`@types/node` and `undici-types`), not production dependencies or runtime authority.
+Install scripts remain disabled. Node 22/24 production-only tests still guard the
+offline CLI contract; Node 26 type declarations alone do not prove that contract.
+
 Configuration reads validate the opened descriptor rather than checking a path
 before opening it. No-follow and nonblocking flags reject final symlinks and
 avoid FIFO hangs. Reads are bounded even if a file grows after validation; link

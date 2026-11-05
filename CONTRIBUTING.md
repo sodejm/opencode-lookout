@@ -10,6 +10,8 @@ Use Node.js 26.4.0+ and npm for development, as required by OpenTUI 0.8.0.
 Use npm 11 or later to install the lockfile. npm 10 misresolves the patched
 override graph and rejects `npm ci`; do not remove the overrides to work around it.
 Runtime CI installs with npm 11.19.1 while still running tests on Node 22 and 24.
+Development uses Node 26 declarations. Do not assume a type-checked Node API is
+available to the offline CLI on Node 22; its production-only runtime tests remain required.
 The offline CLI retains Node.js 22+ support with production
 dependencies only. OpenCode 2.2.5 is needed only for live integration
 tests. The optional terminal harness needs `/usr/bin/expect` (macOS or Linux).
