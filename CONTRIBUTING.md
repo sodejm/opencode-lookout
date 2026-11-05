@@ -54,8 +54,9 @@ production dependencies on Node.js 22 and 24. The Docker job
 exercises real OpenCode loading and terminal workflows; it does not prove provider
 authentication or pixel-level rendering. All security severities block release.
 
-GitHub Actions run with read-only repository permissions and pinned action
-revisions. Do not add secret-bearing PR jobs, `pull_request_target` execution of
+GitHub Actions use pinned revisions and read-only repository permissions, except
+the existing CodeQL job's `security-events: write` permission to upload scan
+results. Do not add secret-bearing PR jobs, `pull_request_target` execution of
 contributor code, or automatic publishing. AI-assisted contributions have the
 same testing, attribution, security, and human-review requirements as other work.
 

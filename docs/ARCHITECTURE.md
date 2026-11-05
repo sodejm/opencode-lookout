@@ -9,6 +9,8 @@ artifact-bound Docker builds, terminal tests, and fixture cleanup.
 `release-check.mjs` requires a clean source revision and fresh matching receipts,
 reruns quality checks, and writes a local assessment. None of these scripts
 publishes packages or changes user configuration. CI runs the same entry points.
+CodeQL runs only on GitHub; `check-codeql.mjs` validates its generated SARIF using
+the same pure scanner policy. Its two checks remain separately required.
 
 ## Boundaries
 

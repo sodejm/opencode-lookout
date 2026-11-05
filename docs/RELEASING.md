@@ -70,7 +70,10 @@ pass its explicit profile; any new unsupported CLI blocks until reviewed.
 
 Require a pull request, resolved conversations, and successful **Runtime (Node 22)**,
 **Runtime (Node 24)**, **Quality (Node 26)**, **Security**, **Compatibility**, and
-**Release gate** checks.
+**Release gate** checks, plus CodeQL's **Analyze (actions)** and
+**Analyze (javascript-typescript)**. The CI aggregate does not replace those
+separate hosted CodeQL checks. Each CodeQL job validates SARIF for every finding
+and analysis error after the analyze action succeeds.
 Use zero required external approvals: the sole maintainer reviews the exact
 revision. Disable force pushes/deletions and apply the checks to administrators.
 Remote protection must be verified live; this document alone does not enable it.

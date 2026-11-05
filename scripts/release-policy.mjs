@@ -50,6 +50,33 @@ export function scanClean(kind, report, exit) {
       !scanned.length
     )
       throw new Error("No Semgrep coverage");
+  } else if (kind === "codeql") {
+    if (r.version !== "2.1.0" || !Array.isArray(r.runs) || !r.runs.length)
+      throw new Error("Missing CodeQL runs");
+    for (const run of r.runs) {
+      const entry = record(run);
+      if (record(record(entry.tool).driver).name !== "CodeQL")
+        throw new Error("Unexpected SARIF tool");
+      empty(entry.results);
+      if (!Array.isArray(entry.invocations) || !entry.invocations.length)
+        throw new Error("Missing CodeQL execution evidence");
+      for (const invocation of entry.invocations) {
+        const execution = record(invocation);
+        if (execution.executionSuccessful !== true)
+          throw new Error("CodeQL execution failed");
+        for (const key of [
+          "toolExecutionNotifications",
+          "toolConfigurationNotifications",
+        ]) {
+          if (execution[key] === undefined) continue;
+          if (!Array.isArray(execution[key]))
+            throw new Error("Malformed CodeQL notifications");
+          for (const notification of execution[key])
+            if (record(notification).level !== "note")
+              throw new Error("CodeQL warning/error");
+        }
+      }
+    }
   } else if (kind === "trivy") {
     if (
       r.SchemaVersion !== 2 ||

@@ -10,7 +10,11 @@ misconfiguration; Semgrep uses pinned OSS language/Actions security rules; Gitle
 checks full Git history and current nonignored source. No scan is proof of absence
 of vulnerabilities. This does not certify the host OS or an upstream CLI binary.
 
-Actions are SHA-pinned, read-only, and use standard public runners. Downloads of
+Actions are SHA-pinned and use standard public runners. Repository access is
+read-only except CodeQL security-result uploads (`security-events: write`);
+CodeQL database uploads are disabled. Its Actions and JavaScript/TypeScript
+analyses reject every SARIF result and warning/error, not just scanner failures.
+Downloads of
 standalone scanner binaries, the Semgrep image, rule archive, and Node base image
 are digest-pinned. CLI versions are discovered dynamically, and npm integrity binds
 each tested binary. A malicious registry, compromised upstream release, or scanner

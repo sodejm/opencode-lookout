@@ -35,6 +35,38 @@ const reports = {
     Results: [{ Target: "package-lock.json", Class: "lang-pkgs", Type: "npm" }],
   },
 };
+test("CodeQL rejects findings of every level, failed analysis, and missing execution evidence", () => {
+  const run = {
+    tool: { driver: { name: "CodeQL" } },
+    results: [],
+    invocations: [{ executionSuccessful: true }],
+  };
+  const report = { version: "2.1.0", runs: [run] };
+  assert.doesNotThrow(() => scanClean("codeql", report, 0));
+  for (const level of ["note", "warning", "error", undefined])
+    assert.throws(() =>
+      scanClean(
+        "codeql",
+        { ...report, runs: [{ ...run, results: [{ level }] }] },
+        0,
+      ),
+    );
+  for (const invocations of [
+    undefined,
+    [],
+    [{ executionSuccessful: false }],
+    [
+      {
+        executionSuccessful: true,
+        toolExecutionNotifications: [{ level: "warning" }],
+      },
+    ],
+  ])
+    assert.throws(() =>
+      scanClean("codeql", { ...report, runs: [{ ...run, invocations }] }, 0),
+    );
+  assert.throws(() => scanClean("codeql", { version: "2.1.0", runs: [] }, 0));
+});
 test("all scanners fail closed on errors, missing output, and any finding", () => {
   for (const [kind, report] of Object.entries(reports)) {
     assert.doesNotThrow(() => scanClean(kind, report, 0));
