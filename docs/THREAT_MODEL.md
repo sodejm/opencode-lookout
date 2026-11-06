@@ -1,5 +1,11 @@
 # Threat model
 
+PR CodeQL results can omit findings outside the reported changes. Required
+**Analyze** checks therefore come from full branch-push/dispatch scans; PR scans
+use distinct names. A clean PR analysis alone cannot authorize release, and the
+post-merge full scan must pass before publishing. The integration harness keeps
+fixture session responses in memory instead of writing an unused response dump.
+
 The release-preparation dependency update changes only development declarations
 (`@types/node` and `undici-types`), not production dependencies or runtime authority.
 Install scripts remain disabled. Node 22/24 production-only tests still guard the

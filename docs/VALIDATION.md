@@ -9,6 +9,8 @@ reversible controls, malformed config, duplicate keys, protected IDs, expired
 and replayed previews, external edits, symlinks, locks, and offline recovery.
 Release tests reject low/unknown findings, scanner errors, incomplete reports,
 stale/source-mismatched evidence, incomplete matrices, and failed commands.
+Workflow tests keep required full CodeQL checks distinct from PR-only checks.
+The terminal fixture asserts that session responses are not saved to disk.
 
 ## Runtime checks
 

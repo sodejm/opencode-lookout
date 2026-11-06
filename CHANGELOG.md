@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.1.1 — 2026-11-05
+
+### Fixed
+
+- Remove an unused fixture session-response dump reported by full CodeQL analysis.
+  The isolated terminal tests now assert that the response is not saved.
+- Require full CodeQL scans on candidate branch pushes. PR-only scans use separate
+  check names and cannot satisfy the required full-scan checks. Release procedure
+  also verifies post-merge checks before publishing.
+- Supersede the withdrawn 0.1.0 release, whose PR analysis passed but post-merge
+  full analysis reported the fixture finding. The 0.1.0 tag remains immutable.
+
 ## 0.1.0 — 2026-11-05
 
 ### Added
