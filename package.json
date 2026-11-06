@@ -1,6 +1,6 @@
 {
   "name": "opencode-lookout",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A native-style resource sidebar for OpenCode, with reversible local controls.",
   "license": "MIT",
   "repository": {

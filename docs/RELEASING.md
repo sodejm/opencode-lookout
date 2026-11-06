@@ -28,6 +28,10 @@ certify provider readiness, or install an update for users. The repository keeps
    `npm run test:compatibility`, and `npm run release:check`. Require all hosted
    CI jobs, including **Release gate**, to pass on that same revision. Record the
    source digest, CLI versions/artifacts, container architecture, and Node versions.
+   The required **Analyze** checks must come from full `push` or
+   `workflow_dispatch` runs on the candidate, not the separate **PR Analyze**
+   checks. After merging, verify the full checks on `main` too and confirm its
+   source tree is identical to the approved candidate before publishing.
 4. Inspect tracked files and full history for private data. Every configured
    finding at any severity, scanner error, missing result, stale receipt, or
    incomplete compatibility result blocks. Do not waive or suppress findings to
@@ -74,6 +78,11 @@ Require a pull request, resolved conversations, and successful **Runtime (Node 2
 **Analyze (javascript-typescript)**. The CI aggregate does not replace those
 separate hosted CodeQL checks. Each CodeQL job validates SARIF for every finding
 and analysis error after the analyze action succeeds.
+Full scans run on every repository branch push. PR scans remain available as
+**PR Analyze (actions)** and **PR Analyze (javascript-typescript)**, but their
+change-focused results cannot substitute for full-candidate assurance. For a fork
+PR, the maintainer must bring the reviewed candidate onto a repository branch
+and obtain the required full checks; do not bypass protection to merge it.
 Use zero required external approvals: the sole maintainer reviews the exact
 revision. Disable force pushes/deletions and apply the checks to administrators.
 Remote protection must be verified live; this document alone does not enable it.

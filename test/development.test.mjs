@@ -4,6 +4,17 @@ import { readFile } from "node:fs/promises";
 import { parse } from "jsonc-parser";
 import { ID, change, lifecycle } from "../src/config.mjs";
 
+test("required CodeQL checks come from full branch scans, never PR-only results", async () => {
+  const workflow = await readFile(".github/workflows/codeql.yml", "utf8");
+  assert.match(workflow, /branches: \["\*\*"\]/);
+  assert.match(
+    workflow,
+    /github\.event_name == 'pull_request' && 'PR Analyze' \|\| 'Analyze'/,
+  );
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /node scripts\/check-codeql\.mjs/);
+});
+
 test("canonical Lookout names cover ID, ownership, lifecycle, and recovery path", async () => {
   assert.equal(ID, "opencode-lookout");
   assert.match(

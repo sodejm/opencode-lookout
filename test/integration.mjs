@@ -270,9 +270,14 @@ try {
   // Optional real terminal exercise. No prompt is submitted to a model.
   if (process.env.LOOKOUT_TUI === "1") {
     const session = await request("/api/session", "POST", {});
-    await writeFile(join(root, "session.json"), JSON.stringify(session));
+    // Keep the fixture response in memory; only its ID is needed by the terminal.
     const id = session.id ?? session.data?.id;
     assert(id, "session creation returned an ID");
+    await assert.rejects(
+      readFile(join(root, "session.json")),
+      { code: "ENOENT" },
+      "session responses must stay in memory",
+    );
     const transcript = join(root, "terminal.log");
     execFileSync(
       "/usr/bin/expect",
