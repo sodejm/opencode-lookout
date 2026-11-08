@@ -124,8 +124,12 @@ if {![string match {*Owned restrictions: 0*} $status]} {exit 17}
 send -- "/lookout skill"
 after 500
 send -- "\r"
+# The confirmation and catalog overlap. Changed-cell rendering can retain
+# letters of the placeholder, so its full text need not appear in the stream.
+# Require the specific catalog heading; subsequent actions still prove that
+# the row opens, confirmation applies a restriction, and offline restore works.
 expect {
-  -re {Search IDs, names, descriptions, models} {}
+  -re {Lookout · Skills · all} {}
   timeout {exit 12}
 }
 after 400

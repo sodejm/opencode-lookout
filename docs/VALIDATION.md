@@ -53,6 +53,14 @@ deny every provider/tool action and never submit a model request. They exercise:
   details, cancellation, confirmation, and offline restore; zero inference cost.
 - Native MCP status without duplicate inventory; file-sourced plugin descriptions.
 
+After cancelling a preview, the terminal harness checks the reopened catalog's
+full heading rather than requiring a contiguous search placeholder. A retained
+failure showed the renderer updating only changed placeholder cells. A synthetic
+regression covers that output and rejects unrelated dialogs; cancellation must
+still leave zero owned restrictions, and confirmation and offline restore must
+still change and restore the fixture. This test-only correction does not change
+runtime behavior, permissions, or the threat model's trust boundaries.
+
 The Docker runner discovers the newest five stable V2+ CLI versions plus the
 highest RC of the nearest unreleased version. It fails if discovery or any test
 fails. Each image installs a CLI artifact with verified npm integrity and locked
