@@ -30,6 +30,14 @@ Environment/package settings are external controls and must be checked by the
 maintainer before first use.
 Repository write access and compromised dependencies/runners remain trusted risks.
 
+The maintainer-approved first-package v0.1.2 bootstrap uses an existing npm login
+and private 2FA instead of OIDC, because npm requires an existing package before
+trusted-publisher setup. The maintainer's terminal and npm session are additional
+trusted components for this one publication. All release gates and exact-artifact
+checks still apply, but this version cannot claim GitHub OIDC provenance. No
+credential enters repository files, CI secrets, or chat. The exception expires
+after v0.1.2; future versions use the manual trusted-publishing workflow.
+
 PR CodeQL results can omit findings outside the reported changes. Required
 **Analyze** checks therefore come from full branch-push/dispatch scans; PR scans
 use distinct names. A clean PR analysis alone cannot authorize release, and the

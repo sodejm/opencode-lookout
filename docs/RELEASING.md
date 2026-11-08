@@ -122,11 +122,37 @@ revoked token, silently switch to token publishing, or claim OIDC provenance for
 a local publish. Login/2FA must happen in the maintainer's own terminal or npm UI,
 never by sharing credentials in chat.
 
+### Approved one-time v0.1.2 bootstrap
+
+The maintainer approved publishing the real first `opencode-lookout@0.1.2`
+artifact using the existing authenticated npm login, with 2FA completed privately.
+This is a one-time exception to OIDC publication, not permission to publish a
+placeholder or use the revoked token. It does not waive any quality, security,
+compatibility, signed-tag, GitHub-release, exact-revision approval, or post-merge
+gate above. Record the approved SHA and tested tarball integrity in the release.
+
+Before publishing, verify the registry still has no package, verify account
+identity, and run `node scripts/check-package-evidence.mjs PATH_TO_TESTED_TARBALL`
+on the clean approved checkout with fresh evidence. Publish those exact tarball
+bytes with `npm publish PATH_TO_TESTED_TARBALL --access public --ignore-scripts`
+from the maintainer's terminal. Never send credentials or 2FA codes through chat.
+If publication is interrupted, query the registry before retrying; do not attempt
+to replace an existing version.
+
+This version has **no GitHub OIDC provenance**. Verify its registry integrity
+against the approved artifact and test a fresh registry installation, including
+offline recovery and both isolated terminal modes. After the package exists,
+configure the trusted publisher described above for future versions. Do not
+dispatch the OIDC workflow for the already-published v0.1.2: npm versions are
+immutable. This exception expires after the first successful v0.1.2 publication.
+
+### Subsequent trusted publications
+
 After account setup and exact approval, manually dispatch **Publish npm (manual)**
 on the published tag (not `main`) with `approved_sha` set to its full commit ID:
 
 ```sh
-gh workflow run npm-publish.yml --ref v0.1.2 -f approved_sha=FULL_APPROVED_COMMIT
+gh workflow run npm-publish.yml --ref vX.Y.Z -f approved_sha=FULL_APPROVED_COMMIT
 ```
 
 The workflow verifies the signed annotated tag through GitHub, the non-draft

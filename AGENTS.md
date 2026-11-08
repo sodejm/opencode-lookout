@@ -16,6 +16,8 @@ credentials, transcripts, or machine-specific paths into this repository.
   rewrite history or discard unrelated work. Push, release, or publish only when
   explicitly authorized. npm publication is manual, uses trusted publishing, and
   requires exact-revision approval plus the release gates in docs/RELEASING.md.
+  The sole exception is the explicitly approved first-package v0.1.2 bootstrap
+  documented there; it does not authorize token-based publishing for later versions.
 - Report exact validation, skips, and remaining risks. Automated review is not
   human approval; the maintainer reviews the exact revision before merge/release.
 

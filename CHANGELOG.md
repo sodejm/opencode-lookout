@@ -1,8 +1,6 @@
 # Changelog
 
-## Unreleased
-
-### v0.1.2 preparation
+## 0.1.2 — 2026-11-08
 
 - Add an allowlisted npm artifact and a `lookout` executable for stable-prefix
   installs. Correct executable detection through npm's symlink; preserve the
@@ -14,7 +12,12 @@
   audits, and the real server/TUI matrix. Bind Docker receipts to tarball integrity.
 - Add a manual OIDC publication workflow requiring the exact approved signed tag,
   published GitHub release, matching main tree, fresh full hosted checks and fresh
-  local release gates. npm account setup and exact-revision approval remain required.
+  local release gates. The maintainer approved a one-time authenticated bootstrap
+  for this first npm version; it has no GitHub OIDC provenance. Future versions
+  use trusted publishing after package setup.
+- Match the full catalog heading after cancelling a terminal preview, rather than
+  requiring a contiguous placeholder in changed-cell renderer output. Preserve
+  cancellation, confirmed mutation, and offline recovery assertions.
 
 ## 0.1.1 — 2026-11-05
 

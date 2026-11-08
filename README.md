@@ -21,7 +21,7 @@ read-only behavior on 2.2.1–2.2.2 and full controls on newer supported V2 host
 
 ## Install
 
-### npm package (v0.1.2 release candidate)
+### npm package (v0.1.2)
 
 These commands are for use **after v0.1.2 is published**. Install to a dedicated,
 stable prefix, not into another application's dependency tree:
