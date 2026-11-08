@@ -1,5 +1,32 @@
 /** Fail-closed hosted evidence policy for a manually approved npm release. */
 const repository = "sodejm/opencode-lookout";
+
+/**
+ * Derive network identifiers from the dispatch context; file data only verifies
+ * the local package version and is never returned for use in a request URL.
+ * @param {{repository?:string, ref?:string, sha?:string, approvedSHA?:string}} context GitHub dispatch identity.
+ * @param {unknown} manifestVersion Local package version to compare, not transmit.
+ * @returns {{tag:string, version:string, sha:string}} Validated public dispatch identifiers.
+ */
+export function publicationTarget(context, manifestVersion) {
+  const match =
+    /^refs\/tags\/v((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))$/.exec(
+      context.ref ?? "",
+    );
+  if (
+    context.repository !== repository ||
+    !match ||
+    match[0] !== context.ref ||
+    context.sha?.length !== 40 ||
+    !/^[a-f0-9]{40}$/.test(context.sha) ||
+    context.sha !== context.approvedSHA ||
+    manifestVersion !== match[1]
+  )
+    throw new Error(
+      "Dispatch the exact approved release tag matching the local package version",
+    );
+  return { tag: `v${match[1]}`, version: match[1], sha: context.sha };
+}
 const ciJobs = [
   "Runtime (Node 22)",
   "Runtime (Node 24)",

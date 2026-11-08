@@ -23,8 +23,11 @@ not a stored npm token. It requires a verified annotated tag at the approved SHA
 a non-draft stable GitHub release, matching main tree and fresh complete candidate
 and post-merge CI/full CodeQL runs. It reruns local gates and verifies that the
 published tarball hash is the one exercised by Docker. Missing, malformed, stale,
-failed or mismatched evidence blocks publication. Environment/package settings
-are external controls and must be checked by the maintainer before first use.
+failed or mismatched evidence blocks publication. Release evidence endpoints
+are queried using validated public GitHub dispatch identifiers; local manifest
+data is compared locally and is not used to construct outbound request URLs.
+Environment/package settings are external controls and must be checked by the
+maintainer before first use.
 Repository write access and compromised dependencies/runners remain trusted risks.
 
 PR CodeQL results can omit findings outside the reported changes. Required

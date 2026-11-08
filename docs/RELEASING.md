@@ -112,8 +112,9 @@ the required publish permission, not dist-tag administration. No npm token is
 stored in the repository or workflow. See the current
 [npm trusted publishing guide](https://docs.npmjs.com/trusted-publishers/).
 
-**First-package bootstrap remains an account-setup decision.** npm documents
-trusted-publisher configuration through an existing package's settings. A registry
+**First-package bootstrap remains an account-setup decision.** npm's
+[trust prerequisites](https://docs.npmjs.com/cli/v11/commands/npm-trust) require the
+package to already exist on the registry. A registry
 404 does not establish ownership, and local `npm whoami` is not an OIDC permission
 check. If package settings are not available for this new name, stop and agree a
 bootstrap procedure with the maintainer. Do not publish a placeholder, use the

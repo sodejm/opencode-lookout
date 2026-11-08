@@ -1,6 +1,41 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validatePublishEvidence } from "../scripts/npm-policy.mjs";
+import {
+  publicationTarget,
+  validatePublishEvidence,
+} from "../scripts/npm-policy.mjs";
+
+test("publication requests use a validated dispatch tag, never local manifest data", () => {
+  const context = {
+    repository: "sodejm/opencode-lookout",
+    ref: "refs/tags/v0.1.2",
+    sha: "a".repeat(40),
+    approvedSHA: "a".repeat(40),
+  };
+  assert.deepEqual(publicationTarget(context, "0.1.2"), {
+    tag: "v0.1.2",
+    version: "0.1.2",
+    sha: context.sha,
+  });
+  for (const version of [undefined, null, {}, "0.1.1", "private/file/data"])
+    assert.throws(() => publicationTarget(context, version));
+  for (const ref of [
+    undefined,
+    "refs/heads/main",
+    "refs/tags/v0.1.2-rc.1",
+    "refs/tags/v01.1.2",
+    "refs/tags/v0.1.2/extra",
+    "refs/tags/v0.1.2?query",
+    "refs/tags/v0.1.2\n",
+  ])
+    assert.throws(() => publicationTarget({ ...context, ref }, "0.1.2"));
+  assert.throws(() =>
+    publicationTarget({ ...context, repository: "other/repo" }, "0.1.2"),
+  );
+  assert.throws(() =>
+    publicationTarget({ ...context, approvedSHA: "b".repeat(40) }, "0.1.2"),
+  );
+});
 
 const now = Date.now();
 const sha = "a".repeat(40),

@@ -1,22 +1,22 @@
 /** Collect fresh hosted evidence; no remote writes or credential output. */
 import { readFile } from "node:fs/promises";
-import { validatePublishEvidence } from "./npm-policy.mjs";
+import { publicationTarget, validatePublishEvidence } from "./npm-policy.mjs";
 
 const repository = "sodejm/opencode-lookout";
 const { GH_TOKEN, APPROVED_SHA, GITHUB_SHA, GITHUB_REF, GITHUB_REPOSITORY } =
   process.env;
 const manifest = JSON.parse(await readFile("package.json", "utf8"));
-const tag = `v${manifest.version}`;
-if (
-  !GH_TOKEN ||
-  GITHUB_REPOSITORY !== repository ||
-  GITHUB_SHA !== APPROVED_SHA ||
-  GITHUB_REF !== `refs/tags/${tag}` ||
-  !/^[a-f0-9]{40}$/.test(APPROVED_SHA ?? "")
-)
-  throw new Error(
-    "Dispatch the exact approved release tag in the canonical repository",
-  );
+if (!GH_TOKEN) throw new Error("Authenticated hosted evidence is required");
+const target = publicationTarget(
+  {
+    repository: GITHUB_REPOSITORY,
+    sha: GITHUB_SHA,
+    approvedSHA: APPROVED_SHA,
+    ref: GITHUB_REF,
+  },
+  manifest.version,
+);
+const { tag } = target;
 /** @param {string} path Repository-relative API path, never an arbitrary host. */
 async function api(path) {
   const response = await fetch(
@@ -78,7 +78,7 @@ const evidence = {
 };
 validatePublishEvidence(evidence, APPROVED_SHA ?? "", tag);
 const version = await fetch(
-  `https://registry.npmjs.org/opencode-lookout/${encodeURIComponent(manifest.version)}`,
+  `https://registry.npmjs.org/opencode-lookout/${encodeURIComponent(target.version)}`,
   { signal: AbortSignal.timeout(30000) },
 );
 if (version.status !== 404)
