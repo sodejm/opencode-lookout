@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### v0.1.2 preparation
+
+- Add an allowlisted npm artifact and a `lookout` executable for stable-prefix
+  installs. Correct executable detection through npm's symlink; preserve the
+  existing checkout invocation and path-owned recovery markers.
+- Precompile the Solid TUI for loading inside `node_modules`; check generated
+  output against source. Declare the host SDK/UI runtime as optional peers rather
+  than installing a second SDK graph with consumer-unprotected dependencies.
+- Test production-installed tarballs, offline failure/recovery, consumer dependency
+  audits, and the real server/TUI matrix. Bind Docker receipts to tarball integrity.
+- Add a manual OIDC publication workflow requiring the exact approved signed tag,
+  published GitHub release, matching main tree, fresh full hosted checks and fresh
+  local release gates. npm account setup and exact-revision approval remain required.
+
 ## 0.1.1 — 2026-11-05
 
 ### Fixed

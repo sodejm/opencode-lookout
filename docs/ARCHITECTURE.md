@@ -1,5 +1,20 @@
 # Architecture
 
+## npm artifact boundary
+
+The package ships the server/RPC TypeScript exports, runtime modules, recovery
+CLI, public docs and a generated `dist/tui.js`. Babel's pinned Solid universal
+transform targets `@opentui/solid`; the generated TUI imports the original RPC and
+shared runtime modules. `build:check` rejects stale generated code. No install or
+pack lifecycle scripts execute. The SDK, OpenTUI and Solid are host-provided
+optional peers; only `jsonc-parser` is installed for offline recovery.
+
+The supported npm install uses a dedicated stable prefix and the same marked
+directory load entry as a checkout. Harness files stay in the repository while
+integration loads a production-installed tarball from a separate dependency
+tree. Direct registry entries and ephemeral npm-exec caches are not claimed by
+the path-owned recovery CLI.
+
 ## Release tooling boundary
 
 `scripts/release-policy.mjs` contains pure report, freshness, and compatibility

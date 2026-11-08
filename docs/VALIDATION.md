@@ -1,5 +1,29 @@
 # Validation
 
+## Packed consumer validation
+
+`make check` includes `build:check` and `test:package`. The latter packs the actual
+artifact, installs it outside the checkout with `--omit=dev --ignore-scripts`,
+audits its dependency graph at every severity, and exercises the npm bin and
+offline failure/recovery paths with isolated HOME/XDG directories. It rejects
+accidentally installed SDK/build dependencies. Node 22/24 CI runs this too.
+
+The Docker matrix now loads a production-installed tarball from `/consumer`, not
+the harness checkout. The runner packs once into `.build/npm-artifact/` and copies
+those exact bytes into every image; it does not repack with another platform's
+gzip implementation. Each image's tarball must match the local pack's SHA-512
+integrity. The source and package digests are both recorded in compatibility and
+release receipts. Fixture provider/tool denials and both terminal modes remain.
+For a local packed server/TUI case, use:
+
+```sh
+LOOKOUT_PACKED_INTEGRATION=1 LOOKOUT_TUI=1 npm run test:package
+LOOKOUT_PACKED_INTEGRATION=1 LOOKOUT_TUI=1 LOOKOUT_NARROW=1 LOOKOUT_THEME=tokyonight npm run test:package
+```
+
+These tests prove stable-prefix/path loading. They do not prove direct registry
+entry recovery, npm ownership, OIDC authentication or registry publication.
+
 ## Repository checks
 
 `make check` runs Prettier, local documentation-link checks, blocking ESLint/JSDoc,
@@ -28,6 +52,14 @@ deny every provider/tool action and never submit a model request. They exercise:
 - Carbonfox at 150×52 and Tokyonight at 80×36, search, category/state selection,
   details, cancellation, confirmation, and offline restore; zero inference cost.
 - Native MCP status without duplicate inventory; file-sourced plugin descriptions.
+
+After cancelling a preview, the terminal harness checks the reopened catalog's
+full heading rather than requiring a contiguous search placeholder. A retained
+failure showed the renderer updating only changed placeholder cells. A synthetic
+regression covers that output and rejects unrelated dialogs; cancellation must
+still leave zero owned restrictions, and confirmation and offline restore must
+still change and restore the fixture. This test-only correction does not change
+runtime behavior, permissions, or the threat model's trust boundaries.
 
 The Docker runner discovers the newest five stable V2+ CLI versions plus the
 highest RC of the nearest unreleased version. It fails if discovery or any test

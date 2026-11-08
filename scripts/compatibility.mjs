@@ -3,11 +3,16 @@ import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { output, discover, sourceDigest } from "./release-io.mjs";
+import { packageArtifact } from "./package-artifact.mjs";
 
 const directory = "release-evidence";
 await mkdir(directory, { recursive: true });
 await writeFile(`${directory}/compatibility.json`, "");
 const source = sourceDigest();
+// Pack once on the invoking host. Equal tar contents can have different gzip
+// bytes across Node/zlib platforms, so every image must install these exact bytes.
+await mkdir(".build/npm-artifact", { recursive: true });
+const artifact = packageArtifact(".build/npm-artifact");
 const targets = await discover();
 const architecture = output("docker", [
   "info",
@@ -50,6 +55,8 @@ for (const version of targets) {
       `CLI_PACKAGE=${cliPackage}`,
       "--build-arg",
       `CLI_INTEGRITY=${integrity}`,
+      "--build-arg",
+      `LOOKOUT_TARBALL=${artifact.filename}`,
       ".",
     ],
     { stdio: "inherit", timeout: 900000 },
@@ -62,6 +69,24 @@ for (const version of targets) {
     "--format",
     "{{.Id}}",
   ]);
+  const installedIntegrity = output("docker", [
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "--read-only",
+    "--cap-drop",
+    "ALL",
+    "--entrypoint",
+    "node",
+    image,
+    "--input-type=module",
+    "-e",
+    'import {readFileSync} from "node:fs"; import {createHash} from "node:crypto"; console.log("sha512-"+createHash("sha512").update(readFileSync(process.argv[1])).digest("base64"));',
+    `/artifacts/${artifact.filename}`,
+  ]);
+  if (installedIntegrity !== artifact.integrity)
+    throw new Error("Docker installed a different npm artifact");
   for (const mode of ["wide", "narrow"]) {
     const name = `lookout-${randomUUID()}`;
     /** @type {number|null} */
@@ -116,6 +141,7 @@ for (const version of targets) {
       JSON.stringify(
         {
           source,
+          artifact,
           targets,
           architecture,
           created: new Date().toISOString(),

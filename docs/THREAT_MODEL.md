@@ -1,5 +1,35 @@
 # Threat model
 
+## npm publication and consumer boundary
+
+The npm artifact uses a files allowlist and has no install hooks. Its committed
+generated TUI is byte-checked against source and included in security coverage.
+An isolated consumer install must pass the same all-severity audit parser, without
+assuming dependency overrides propagate from this repository. They do not:
+installing `@opencode/plugin` as a consumer dependency reproduced vulnerable
+glob/minimatch transitive resolutions. OpenCode supplies the SDK/UI runtime;
+optional peers document that boundary without installing a second copy. The
+offline CLI needs only jsonc-parser. Host-runtime security remains an OpenCode
+responsibility, not a claim made by a clean Lookout consumer audit.
+
+npm bin symlinks must execute the CLI rather than silently returning success.
+Tests cover missing, malformed and ambiguous configs, edited ownership markers,
+confirmation refusal and recovery while preserving unrelated denies. Only stable
+package paths are owned; direct registry entries and other config layers can
+override a global disable and require separate inspection.
+
+The manual publication job has short-lived OIDC authority in the `npm` environment,
+not a stored npm token. It requires a verified annotated tag at the approved SHA,
+a non-draft stable GitHub release, matching main tree and fresh complete candidate
+and post-merge CI/full CodeQL runs. It reruns local gates and verifies that the
+published tarball hash is the one exercised by Docker. Missing, malformed, stale,
+failed or mismatched evidence blocks publication. Release evidence endpoints
+are queried using validated public GitHub dispatch identifiers; local manifest
+data is compared locally and is not used to construct outbound request URLs.
+Environment/package settings are external controls and must be checked by the
+maintainer before first use.
+Repository write access and compromised dependencies/runners remain trusted risks.
+
 PR CodeQL results can omit findings outside the reported changes. Required
 **Analyze** checks therefore come from full branch-push/dispatch scans; PR scans
 use distinct names. A clean PR analysis alone cannot authorize release, and the

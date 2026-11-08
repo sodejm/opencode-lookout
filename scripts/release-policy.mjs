@@ -59,6 +59,10 @@ export function scanClean(kind, report, exit) {
       "scripts/security.mjs",
       "test/integration.mjs",
       ".github/workflows/ci.yml",
+      ".github/workflows/npm-publish.yml",
+      "dist/tui.js",
+      "scripts/npm-policy.mjs",
+      "scripts/npm-publish-check.mjs",
     ])
       if (!scanned.includes(path))
         throw new Error(`Missing Semgrep coverage: ${path}`);

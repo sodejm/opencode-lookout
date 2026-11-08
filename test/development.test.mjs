@@ -4,6 +4,25 @@ import { readFile } from "node:fs/promises";
 import { parse } from "jsonc-parser";
 import { ID, change, lifecycle } from "../src/config.mjs";
 
+test("npm publishing is manual, tag-scoped, and rechecks evidence before OIDC publication", async () => {
+  const workflow = await readFile(".github/workflows/npm-publish.yml", "utf8");
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(
+    workflow,
+    /(?:^|\n)\s+(?:push|pull_request|pull_request_target|release|schedule):/,
+  );
+  assert.match(workflow, /environment: npm/);
+  assert.match(workflow, /id-token: write/);
+  assert.match(workflow, /startsWith\(github.ref, 'refs\/tags\/v'\)/);
+  assert.equal(
+    workflow.match(/node scripts\/npm-publish-check.mjs/g)?.length,
+    2,
+  );
+  assert.match(workflow, /node scripts\/check-package-evidence.mjs/);
+  assert.match(workflow, /npm publish .*--ignore-scripts .*--provenance/);
+  assert.doesNotMatch(workflow, /NODE_AUTH_TOKEN|NPM_TOKEN|secrets\./);
+});
+
 test("required CodeQL checks come from full branch scans, never PR-only results", async () => {
   const workflow = await readFile(".github/workflows/codeql.yml", "utf8");
   assert.match(workflow, /branches: \["\*\*"\]/);

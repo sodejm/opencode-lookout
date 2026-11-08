@@ -9,17 +9,50 @@ existing sidebar. It does not replace Context or MCP status.
 Use OpenCode's native MCP section or `/mcps` for MCP inventory and controls.
 
 Lookout is an independent community extension, not an official OpenCode product.
-It targets OpenCode **2.2.5**. Use Node.js **26.4.0+** for a full development install;
+It uses the public OpenCode **2.2.5** API contract. Use Node.js **26.4.0+** for a full development install;
 the offline CLI retains **Node.js 22+** support with production dependencies.
-The repository is public
-under the MIT license; the package remains `private: true` to prevent accidental
-npm publication. See the support profiles below before using another CLI version.
+The repository is public under the MIT license. npm publication is a separate,
+manually approved release operation. See the support profiles below before using
+another CLI version.
 
 Resource controls require the current V2 policy API (OpenCode 2.2.3+). Older or
 unidentified hosts show a read-only inventory. Release tests require verified
 read-only behavior on 2.2.1–2.2.2 and full controls on newer supported V2 hosts.
 
 ## Install
+
+### npm package (v0.1.2 release candidate)
+
+These commands are for use **after v0.1.2 is published**. Install to a dedicated,
+stable prefix, not into another application's dependency tree:
+
+```sh
+mkdir -p "$HOME/.local/share/opencode-lookout"
+npm install --prefix "$HOME/.local/share/opencode-lookout" --save-exact --omit=dev --ignore-scripts opencode-lookout@0.1.2
+"$HOME/.local/share/opencode-lookout/node_modules/.bin/lookout" load
+"$HOME/.local/share/opencode-lookout/node_modules/.bin/lookout" status
+```
+
+Use that same executable for `unload` and `restore --yes`, even when OpenCode
+cannot start. The package does not need development dependencies or install
+scripts. OpenCode supplies its SDK and Solid/OpenTUI runtime; these are optional
+peers, not dependencies installed for the offline CLI. The TUI is precompiled
+because OpenTUI does not transform JSX in `node_modules`.
+
+Do not use `npx lookout` or an ephemeral npm-exec install for lifecycle commands:
+the owned load entry points to the executable's installed package directory.
+Keep that directory until you have restored restrictions and unloaded Lookout.
+Before switching from a checkout, use the old checkout's `restore --yes` and
+`unload`, then use the new executable's `load`. No personal installation is
+migrated automatically.
+
+Direct `opencode plugin add opencode-lookout@...` entries are not owned by the
+offline lifecycle CLI. Do not combine them with the marked path entry. To switch,
+remove the exact unmarked entry through OpenCode first (and check project configs
+for duplicate loads). This release validates the stable-prefix installation,
+not recovery from OpenCode's registry cache. See [recovery](#load-or-unload).
+
+### Source checkout
 
 Clone outside OpenCode's automatically discovered `plugins/` directory:
 

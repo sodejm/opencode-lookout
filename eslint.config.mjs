@@ -8,6 +8,8 @@ export default [
   {
     ignores: [
       "node_modules/**",
+      // Pinned compiler output is byte-checked by build:check and security-scanned.
+      "dist/tui.js",
       ".build/**",
       "test-artifacts/**",
       "release-evidence/**",
