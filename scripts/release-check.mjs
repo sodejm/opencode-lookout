@@ -3,12 +3,14 @@ import { spawnSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { output, discover, sourceDigest } from "./release-io.mjs";
 import { validateEvidence } from "./release-policy.mjs";
+import { packageArtifact } from "./package-artifact.mjs";
 
 await writeFile("release-evidence/release.json", "");
 
 if (output("git", ["status", "--porcelain"]))
   throw new Error("Commit the reviewed candidate before release assessment");
 const source = sourceDigest();
+const artifact = packageArtifact();
 const commit = output("git", ["rev-parse", "HEAD"]);
 const targets = await discover();
 const security = JSON.parse(
@@ -31,6 +33,8 @@ for (const receipt of [security, compatibility]) {
 }
 if (JSON.stringify(compatibility.targets) !== JSON.stringify(targets))
   throw new Error("CLI versions changed; rerun compatibility");
+if (compatibility.artifact?.integrity !== artifact.integrity)
+  throw new Error("Compatibility evidence does not cover this npm artifact");
 const quality = spawnSync("make", ["check"], {
   stdio: "inherit",
   timeout: 300000,
@@ -38,6 +42,7 @@ const quality = spawnSync("make", ["check"], {
 const evidence = {
   schema: 1,
   source,
+  artifact,
   commit,
   created: new Date().toISOString(),
   targets,

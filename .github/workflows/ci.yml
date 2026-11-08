@@ -30,6 +30,7 @@ jobs:
       - run: npm install --global --ignore-scripts npm@11.19.1
       - run: npm ci --ignore-scripts --omit=dev
       - run: npm test
+      - run: npm run test:package
   quality:
     name: Quality (Node 26)
     runs-on: ubuntu-latest

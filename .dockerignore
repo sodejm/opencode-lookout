@@ -1,6 +1,9 @@
 .git
 node_modules
-.build
+.build/*
+!.build/npm-artifact/
+.build/npm-artifact/*
+!.build/npm-artifact/*.tgz
 release-evidence
 test-artifacts
 .env*

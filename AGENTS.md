@@ -14,7 +14,8 @@ credentials, transcripts, or machine-specific paths into this repository.
 - Use semantic theme colors and public OpenCode 2.2.5 APIs. Never substitute V1 SDKs.
 - Create a local checkpoint after a coherent, validated authorized change. Do not
   rewrite history or discard unrelated work. Push, release, or publish only when
-  explicitly authorized. `private: true` intentionally blocks npm publication.
+  explicitly authorized. npm publication is manual, uses trusted publishing, and
+  requires exact-revision approval plus the release gates in docs/RELEASING.md.
 - Report exact validation, skips, and remaining risks. Automated review is not
   human approval; the maintainer reviews the exact revision before merge/release.
 

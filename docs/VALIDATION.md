@@ -1,5 +1,29 @@
 # Validation
 
+## Packed consumer validation
+
+`make check` includes `build:check` and `test:package`. The latter packs the actual
+artifact, installs it outside the checkout with `--omit=dev --ignore-scripts`,
+audits its dependency graph at every severity, and exercises the npm bin and
+offline failure/recovery paths with isolated HOME/XDG directories. It rejects
+accidentally installed SDK/build dependencies. Node 22/24 CI runs this too.
+
+The Docker matrix now loads a production-installed tarball from `/consumer`, not
+the harness checkout. The runner packs once into `.build/npm-artifact/` and copies
+those exact bytes into every image; it does not repack with another platform's
+gzip implementation. Each image's tarball must match the local pack's SHA-512
+integrity. The source and package digests are both recorded in compatibility and
+release receipts. Fixture provider/tool denials and both terminal modes remain.
+For a local packed server/TUI case, use:
+
+```sh
+LOOKOUT_PACKED_INTEGRATION=1 LOOKOUT_TUI=1 npm run test:package
+LOOKOUT_PACKED_INTEGRATION=1 LOOKOUT_TUI=1 LOOKOUT_NARROW=1 LOOKOUT_THEME=tokyonight npm run test:package
+```
+
+These tests prove stable-prefix/path loading. They do not prove direct registry
+entry recovery, npm ownership, OIDC authentication or registry publication.
+
 ## Repository checks
 
 `make check` runs Prettier, local documentation-link checks, blocking ESLint/JSDoc,

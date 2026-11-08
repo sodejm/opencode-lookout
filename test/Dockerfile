@@ -14,8 +14,15 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-fund --no-audit
 COPY . .
+# The plugin resolves from /consumer, never /app's developer dependency tree.
+ARG LOOKOUT_TARBALL
+COPY .build/npm-artifact/${LOOKOUT_TARBALL} /artifacts/${LOOKOUT_TARBALL}
+RUN mkdir /consumer \
+    && npm install --prefix /consumer --omit=dev --ignore-scripts --no-fund --no-audit /artifacts/opencode-lookout-*.tgz \
+    && node scripts/audit-consumer.mjs /consumer
 USER node
 ENV HOME=/tmp/lookout-home
+ENV LOOKOUT_PACKAGE_DIR=/consumer/node_modules/opencode-lookout
 # Runtime smoke check only; integration success is determined by the process exit.
 HEALTHCHECK --interval=30s --timeout=5s --retries=1 CMD node --version || exit 1
 CMD ["node", "test/integration.mjs"]

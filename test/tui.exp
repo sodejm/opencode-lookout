@@ -5,6 +5,7 @@ set session [lindex $argv 1]
 set transcript [lindex $argv 2]
 set narrow [lindex $argv 3]
 set readonly [lindex $argv 4]
+set cli [file join [lindex $argv 5] bin lookout.mjs]
 log_user 0
 log_file -a -noappend $transcript
 spawn -noecho opencode --server $url --session $session
@@ -81,7 +82,6 @@ send -- "\033\[27u"
 after 800
 # Old policy APIs must still support browsing, but never offer an effective mutation.
 if {$readonly == "1"} {
-  set cli [file join [file dirname [file dirname [info script]]] bin lookout.mjs]
   set status [exec node $cli status]
   if {![string match {*Owned restrictions: 0*} $status]} {exit 18}
   send -- "\003"
@@ -115,7 +115,10 @@ expect {
 # Cancel first: the UI must not apply a change just because it was previewed.
 send -- "\033\[27u"
 after 800
-set cli [file join [file dirname [file dirname [info script]]] bin lookout.mjs]
+# Native versions can return to the parent browser after cancellation. Close it
+# before issuing another slash command; at the prompt this Escape is harmless.
+send -- "\033\[27u"
+after 500
 set status [exec node $cli status]
 if {![string match {*Owned restrictions: 0*} $status]} {exit 17}
 send -- "/lookout skill"

@@ -13,7 +13,10 @@ import { once } from "node:events";
 import { fileURLToPath } from "node:url";
 import { lifecycle, owned } from "../src/config.mjs";
 
-const packageDir = resolve(fileURLToPath(new URL("../", import.meta.url)));
+const harnessDir = resolve(fileURLToPath(new URL("../", import.meta.url)));
+const packageDir = process.env.LOOKOUT_PACKAGE_DIR
+  ? resolve(process.env.LOOKOUT_PACKAGE_DIR)
+  : harnessDir;
 const root = await mkdtemp(join(tmpdir(), "opencode-lookout-"));
 const configDir = join(root, "config/opencode"),
   project = join(root, "project");
@@ -47,7 +50,7 @@ const original = {
         type: "local",
         command: [
           process.execPath,
-          resolve(packageDir, "test/fixtures/mcp-server.mjs"),
+          resolve(harnessDir, "test/fixtures/mcp-server.mjs"),
         ],
       },
     },
@@ -282,12 +285,13 @@ try {
     execFileSync(
       "/usr/bin/expect",
       [
-        join(packageDir, "test/tui.exp"),
+        join(harnessDir, "test/tui.exp"),
         url,
         id,
         transcript,
         process.env.LOOKOUT_NARROW || "0",
         readOnly ? "1" : "0",
+        packageDir,
       ],
       { cwd: project, env, timeout: 90_000, stdio: "pipe" },
     );

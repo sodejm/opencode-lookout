@@ -14,8 +14,9 @@ Prereleases use suffixes such as `v0.2.0-rc.1`. Never move or replace a publishe
 tag. Create a new version if a release needs correction.
 
 Tags identify reviewed source revisions. They do not publish an npm package,
-certify provider readiness, or install an update for users. The repository keeps
-`private: true`, and there is no automatic publishing workflow.
+certify provider readiness, or install an update for users. There is
+no automatic publishing workflow. v0.1.2 introduces a separate, manually
+dispatched npm workflow; the older source-release tags remain unchanged.
 
 ## Release checklist
 
@@ -90,5 +91,54 @@ Remote protection must be verified live; this document alone does not enable it.
 Only standard public GitHub runners are used. No self-hosted runners, artifact
 uploads, or cache actions are configured. Runner logs still have normal GitHub
 retention. Do not add paid runners or external service requirements implicitly.
-Keep `private: true`. Future npm publication needs a separate packaging review
-and OIDC trusted-publishing setup; never reuse a token from conversation history.
+Never reuse a token from conversation history.
+
+## Manual npm publication (v0.1.2 onward)
+
+Preparation does not authorize publication. Obtain exact-revision maintainer
+approval after reviewing packaging, generated TUI, consumer audits and installed
+server/TUI evidence. Complete the GitHub release checklist first, including full
+candidate and post-merge CodeQL. The approved tag and main must have identical
+source trees. Re-run stale hosted checks: every required job must have completed
+successfully within 24 hours. A newer failed or incomplete workflow blocks; the
+validator does not fall back to an older success.
+
+Configure an npm trusted publisher for GitHub owner `sodejm`, repository
+`opencode-lookout`, workflow filename `npm-publish.yml`, environment `npm`.
+Use GitHub-hosted standard runners. Configure the GitHub `npm` environment to
+allow reviewed release tags and require the sole maintainer's approval; do not
+require a second reviewer. Verify these settings live. Give the publisher only
+the required publish permission, not dist-tag administration. No npm token is
+stored in the repository or workflow. See the current
+[npm trusted publishing guide](https://docs.npmjs.com/trusted-publishers/).
+
+**First-package bootstrap remains an account-setup decision.** npm documents
+trusted-publisher configuration through an existing package's settings. A registry
+404 does not establish ownership, and local `npm whoami` is not an OIDC permission
+check. If package settings are not available for this new name, stop and agree a
+bootstrap procedure with the maintainer. Do not publish a placeholder, use the
+revoked token, silently switch to token publishing, or claim OIDC provenance for
+a local publish. Login/2FA must happen in the maintainer's own terminal or npm UI,
+never by sharing credentials in chat.
+
+After account setup and exact approval, manually dispatch **Publish npm (manual)**
+on the published tag (not `main`) with `approved_sha` set to its full commit ID:
+
+```sh
+gh workflow run npm-publish.yml --ref v0.1.2 -f approved_sha=FULL_APPROVED_COMMIT
+```
+
+The workflow verifies the signed annotated tag through GitHub, the non-draft
+GitHub release, the approved SHA and fresh hosted CI/full-CodeQL runs. It installs
+with scripts disabled, reruns security, Docker and release assessment, packs and
+tests the actual tarball, and checks its integrity against Docker evidence. It
+rechecks hosted state immediately before `npm publish --provenance` using OIDC.
+The job has `id-token: write` only for this manual operation; PR CI cannot publish.
+Provenance binds the workflow's tag revision to the artifact, not to human review.
+
+After publication, verify the registry's version, tarball integrity and provenance
+against the workflow output and approved tag. Install the registry artifact in a
+fresh isolated prefix and rerun packed recovery/server/TUI validation before
+claiming npm delivery complete. If the job is interrupted after publication,
+inspect registry state first: published versions are immutable, and the workflow
+rejects an already-present version rather than attempting to replace it.

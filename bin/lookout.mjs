@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /** Offline lifecycle controls. Never require a running server, TUI, or credentials. */
-import { access } from "node:fs/promises";
+import { access, realpath } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ID, lifecycle, owned, change, parseConfig } from "../src/config.mjs";
 import { atomicUpdate, readConfig } from "../src/controller.mjs";
@@ -84,7 +84,9 @@ export async function main(args = process.argv.slice(2)) {
 }
 if (
   process.argv[1] &&
-  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  // npm invokes the executable through node_modules/.bin (a symlink on Unix).
+  (await realpath(process.argv[1]).catch(() => "")) ===
+    fileURLToPath(import.meta.url)
 ) {
   main().catch((error) => {
     console.error(

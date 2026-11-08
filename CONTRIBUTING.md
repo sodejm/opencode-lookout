@@ -10,6 +10,12 @@ Use Node.js 26.4.0+ and npm for development, as required by OpenTUI 0.8.0.
 Use npm 11 or later to install the lockfile. npm 10 misresolves the patched
 override graph and rejects `npm ci`; do not remove the overrides to work around it.
 Runtime CI installs with npm 11.19.1 while still running tests on Node 22 and 24.
+`make check` also installs and audits the packed artifact in a temporary consumer
+directory. It requires registry access and fails closed on registry errors.
+After editing `src/tui.tsx`, run `npm run build` and review `dist/tui.js` alongside
+the source. `build:check` requires byte-identical output from the pinned compiler.
+The generated TUI is committed so production-only runtime tests can pack the
+same artifact without installing build tools. It remains security-scanned.
 Development uses Node 26 declarations. Do not assume a type-checked Node API is
 available to the offline CLI on Node 22; its production-only runtime tests remain required.
 The offline CLI retains Node.js 22+ support with production
@@ -61,7 +67,8 @@ authentication or pixel-level rendering. All security severities block release.
 
 GitHub Actions use pinned revisions and read-only repository permissions, except
 the existing CodeQL job's `security-events: write` permission to upload scan
-results. Do not add secret-bearing PR jobs, `pull_request_target` execution of
+results and the manual npm job's `id-token: write` for trusted publishing.
+Do not add secret-bearing PR jobs, `pull_request_target` execution of
 contributor code, or automatic publishing. AI-assisted contributions have the
 same testing, attribution, security, and human-review requirements as other work.
 
