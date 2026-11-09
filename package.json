@@ -1,7 +1,16 @@
 {
   "name": "opencode-lookout",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A native-style resource sidebar for OpenCode, with reversible local controls.",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "tui",
+    "terminal",
+    "sidebar",
+    "developer-tools"
+  ],
+  "author": "Justin Soderberg (sodejm)",
   "license": "MIT",
   "repository": {
     "type": "git",
