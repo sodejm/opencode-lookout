@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3 — 2026-11-09
+
+### Changed
+
+- Publish through the manual trusted-publishing workflow with OIDC provenance,
+  the first release after the approved v0.1.2 bootstrap.
+- Complete npm package metadata: keywords, author, and tests for repository,
+  homepage, bugs, license, engines, and the packed README/source. Show the npm
+  version badge and refresh the README install instructions for the published package.
+- No runtime behavior changes.
+
 ## 0.1.2 — 2026-11-08
 
 - Add an allowlisted npm artifact and a `lookout` executable for stable-prefix

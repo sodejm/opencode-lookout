@@ -1,6 +1,7 @@
 # OpenCode Lookout
 
 [![CI](https://github.com/sodejm/opencode-lookout/actions/workflows/ci.yml/badge.svg)](https://github.com/sodejm/opencode-lookout/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/opencode-lookout.svg)](https://www.npmjs.com/package/opencode-lookout)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Inspect agents, skills, plugins, commands, providers, and models in
@@ -21,14 +22,14 @@ read-only behavior on 2.2.1–2.2.2 and full controls on newer supported V2 host
 
 ## Install
 
-### npm package (v0.1.2)
+### npm package (v0.1.3)
 
-These commands are for use **after v0.1.2 is published**. Install to a dedicated,
-stable prefix, not into another application's dependency tree:
+Install the published package to a dedicated, stable prefix, not into another
+application's dependency tree:
 
 ```sh
 mkdir -p "$HOME/.local/share/opencode-lookout"
-npm install --prefix "$HOME/.local/share/opencode-lookout" --save-exact --omit=dev --ignore-scripts opencode-lookout@0.1.2
+npm install --prefix "$HOME/.local/share/opencode-lookout" --save-exact --omit=dev --ignore-scripts opencode-lookout@0.1.3
 "$HOME/.local/share/opencode-lookout/node_modules/.bin/lookout" load
 "$HOME/.local/share/opencode-lookout/node_modules/.bin/lookout" status
 ```
@@ -112,14 +113,14 @@ Use `/lookout skill` to start with one category. Category names are `agent`,
 
 The catalog uses OpenCode's native searchable dialogs:
 
-| Action | Control |
-| --- | --- |
+| Action                                             | Control                  |
+| -------------------------------------------------- | ------------------------ |
 | Search names, IDs, descriptions, and model details | Type in the search field |
-| Change category | Ctrl+F |
-| Filter by state | Ctrl+S |
-| Refresh the inventory | Ctrl+R |
-| Inspect an item or change it | Enter |
-| Return or close | Escape |
+| Change category                                    | Ctrl+F                   |
+| Filter by state                                    | Ctrl+S                   |
+| Refresh the inventory                              | Ctrl+R                   |
+| Inspect an item or change it                       | Enter                    |
+| Return or close                                    | Escape                   |
 
 Selecting an item opens its action menu. **Show details** opens a read-only
 inspector; Escape closes it back to the prompt. Run `/lookout` again to
@@ -159,14 +160,14 @@ Resource changes require a preview and **Apply Globally** confirmation. They aff
 every project using that server, not just the current conversation. Wait for other
 work to finish before changing resources it may use.
 
-| Resource | Supported control |
-| --- | --- |
-| Skills from configured local sources | Add an exact `skill.use` denial |
-| Local plugins inside your OpenCode configuration directory | Add an exact `-plugin-id` entry |
-| Agents | Inspect; use `/agents` to select |
-| Commands, providers, models | Inspect; use native OpenCode or Console controls |
-| Built-in, managed, unknown-source plugins | Read-only |
-| Lookout itself | Use the external `unload` command |
+| Resource                                                   | Supported control                                |
+| ---------------------------------------------------------- | ------------------------------------------------ |
+| Skills from configured local sources                       | Add an exact `skill.use` denial                  |
+| Local plugins inside your OpenCode configuration directory | Add an exact `-plugin-id` entry                  |
+| Agents                                                     | Inspect; use `/agents` to select                 |
+| Commands, providers, models                                | Inspect; use native OpenCode or Console controls |
+| Built-in, managed, unknown-source plugins                  | Read-only                                        |
+| Lookout itself                                             | Use the external `unload` command                |
 
 **Enable** removes this extension's denial. It never adds an `allow`, removes an
 external restriction, or overrides managed policy. A missing resource stays in
@@ -198,6 +199,7 @@ remove instructions already loaded into an existing conversation.
 
    This suppresses only the TUI part for that process. Use `unload` for the server
    part. It does not bypass any policy or remove resource restrictions.
+
 4. Fix the failure, run `make check`, and use `load` to re-enable the extension.
 
 If an apply request loses its response during configuration reload, refresh before
