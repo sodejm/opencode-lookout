@@ -95,7 +95,7 @@
     "@babel/core": "7.29.7",
     "@babel/preset-typescript": "7.27.1",
     "@types/babel__core": "7.20.5",
-    "babel-preset-solid": "1.9.16",
+    "babel-preset-solid": "1.9.19",
     "@eslint/js": "10.0.1",
     "@opencode/client": "2.2.5",
     "@opencode/plugin": "2.2.5",
