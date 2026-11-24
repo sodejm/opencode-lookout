@@ -24,7 +24,7 @@ const reports = {
   },
   signatures: { invalid: [], missing: [] },
   semgrep: {
-    version: "1.182.0",
+    version: "1.186.0",
     results: [],
     errors: [],
     paths: {

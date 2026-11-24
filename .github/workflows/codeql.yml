@@ -33,13 +33,13 @@ jobs:
           node-version: 26
           package-manager-cache: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        uses: github/codeql-action/init@800a1d8701a65d150a672fef0923dbf2660a62ec # v4
         with:
           languages: ${{ matrix.language }}
           build-mode: none
           queries: security-and-quality
       - name: Analyze and upload security results
-        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        uses: github/codeql-action/analyze@800a1d8701a65d150a672fef0923dbf2660a62ec # v4
         with:
           category: /language:${{ matrix.language }}
           output: ${{ runner.temp }}/lookout-sarif

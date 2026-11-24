@@ -27,7 +27,7 @@ jobs:
           node-version: ${{ matrix.node }}
           package-manager-cache: false
       # npm 10 misresolves the patched override graph. Keep the Node runtime matrix.
-      - run: npm install --global --ignore-scripts npm@11.19.1
+      - run: npm install --global --ignore-scripts npm@12.2.3
       - run: npm ci --ignore-scripts --omit=dev
       - run: npm test
       - run: npm run test:package
