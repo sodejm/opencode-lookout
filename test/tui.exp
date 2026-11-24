@@ -44,8 +44,12 @@ expect {
 send -- "Skills"
 after 300
 send -- "\r"
+# OpenCode 2.4 can redraw the category selection as its stable catalog heading
+# without re-emitting the search placeholder. Subsequent steps still exercise
+# filtering and selection inside that catalog.
 expect {
   -re {Search IDs, names, descriptions, models} {}
+  -re {Lookout · Skills · all} {}
   timeout {exit 14}
 }
 send -- "\023"
