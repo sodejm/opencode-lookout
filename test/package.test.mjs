@@ -3,6 +3,17 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 
+function packedArtifact(name) {
+  const report = JSON.parse(
+    execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+      encoding: "utf8",
+    }),
+  );
+  const pack = Array.isArray(report) ? report[0] : report[name];
+  assert.ok(pack?.files, "npm pack report must include the packed files");
+  return pack;
+}
+
 test("npm artifact contains only runtime code and public documentation", async () => {
   const manifest = JSON.parse(await readFile("package.json", "utf8"));
   assert.equal(manifest.version, "0.1.3");
@@ -25,11 +36,7 @@ test("npm artifact contains only runtime code and public documentation", async (
     "prepublishOnly",
   ])
     assert.equal(manifest.scripts[hook], undefined);
-  const [pack] = JSON.parse(
-    execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
-      encoding: "utf8",
-    }),
-  );
+  const pack = packedArtifact(manifest.name);
   const paths = pack.files.map((file) => file.path);
   for (const path of paths)
     assert.match(
@@ -68,11 +75,7 @@ test("npm package page metadata is complete and points at the reviewed source", 
   assert.equal(manifest.engines?.node, ">=22");
   assert.equal(manifest.publishConfig?.access, "public");
   assert.match(manifest.author ?? "", /\S/);
-  const [pack] = JSON.parse(
-    execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
-      encoding: "utf8",
-    }),
-  );
+  const pack = packedArtifact(manifest.name);
   const paths = pack.files.map((file) => file.path);
   for (const required of [
     "README.md",
