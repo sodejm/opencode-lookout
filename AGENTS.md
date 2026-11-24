@@ -11,6 +11,11 @@ open format for guiding coding agents stewarded by the Agentic AI Foundation (AA
 Keep this project-local guidance concise, actionable, and aligned with README.md and
 CONTRIBUTING.md; adoption does not imply AAIF affiliation or endorsement.
 
+When changing an agent-facing interface or integration, first check
+[AAIF Projects](https://aaif.io/projects), follow each applicable upstream
+specification, and verify compatibility on every supported OpenCode version before
+handoff. Use the repository compatibility suite when live CLI evidence is required.
+
 - Keep the change focused. Preserve the `opencode-lookout` plugin/RPC ID,
   `/lookout` command, recovery CLI, storage keys, and `lookout:` markers unless
   the maintainer explicitly approves a migration.
