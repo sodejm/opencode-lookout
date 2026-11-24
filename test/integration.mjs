@@ -168,12 +168,22 @@ try {
       }));
     return result;
   };
+  const expectedFixtures = [
+    ["skill", "fixture-skill"],
+    ["mcp", "fixture"],
+    ["plugin", "fixture.widget"],
+    ["plugin", "fixture.undocumented"],
+  ];
   const first = await until(
     async () => {
       const s = await snapshot();
-      return s.rows?.length ? s : false;
+      return expectedFixtures.every(([kind, id]) =>
+        s.rows?.some((row) => row.kind === kind && row.id === id),
+      )
+        ? s
+        : false;
     },
-    "extension registration",
+    "fixture registration",
     60_000,
   );
   if (readOnly) {
