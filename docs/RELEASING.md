@@ -49,7 +49,7 @@ Public repository creation is not an initial release. Leave changes under
 
 ## Scanner prerequisites and evidence
 
-Install Semgrep 1.182.0, Trivy 0.76.1, Gitleaks 8.30.1, Docker, and Node 26.4.0+.
+Install Semgrep 1.186.0, Trivy 0.76.2, Gitleaks 8.30.1, Docker, and Node 26.4.0+.
 CI installs checksum-verified binaries and uses a digest-pinned
 Semgrep image; see `scripts/install-ci-scanners.sh`. Semgrep rules are downloaded
 from commit `16b9e6d45f10649f6a531ec4838ed9924372c3bc` with a pinned checksum.

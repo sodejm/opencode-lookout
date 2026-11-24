@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 26
           package-manager-cache: false
-      - run: npm install --global --ignore-scripts npm@11.20.0
+      - run: npm install --global --ignore-scripts npm@12.2.3
       - name: Check exact release and fresh hosted evidence
         env:
           GH_TOKEN: ${{ github.token }}

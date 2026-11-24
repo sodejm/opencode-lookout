@@ -14,6 +14,13 @@ test("current policy API rejects older and unknown hosts instead of ineffective 
     "unknown",
   ])
     assert.equal(supportsPolicyAPI(version), false, version);
-  for (const version of ["2.2.3", "2.2.4", "2.2.5", "2.2.6-rc.1", "2.3.0-rc.1"])
+  for (const version of [
+    "2.2.3",
+    "2.2.4",
+    "2.2.5",
+    "2.2.6-rc.1",
+    "2.3.0-rc.1",
+    "2.4.1",
+  ])
     assert.equal(supportsPolicyAPI(version), true, version);
 });

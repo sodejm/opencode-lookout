@@ -17,8 +17,8 @@ for (const [
   args,
   expected,
 ] of /** @type {Array<[string,string[],string]>} */ ([
-  ["semgrep", ["--version"], "1.182.0"],
-  ["trivy", ["--version"], "Version: 0.76.1"],
+  ["semgrep", ["--version"], "1.186.0"],
+  ["trivy", ["--version"], "Version: 0.76.2"],
   ["gitleaks", ["version"], "8.30.1"],
 ]))
   if (output(tool, args).split("\n")[0] !== expected)

@@ -11,7 +11,7 @@ credentials, transcripts, or machine-specific paths into this repository.
   changes also need isolated integration tests. Do not use personal resources as
   destructive test fixtures. Keep fixture provider/tool denials in place.
 - Update affected docs and the threat model, or record a specific no-impact reason.
-- Use semantic theme colors and public OpenCode 2.2.5 APIs. Never substitute V1 SDKs.
+- Use semantic theme colors and public OpenCode 2.4.1 APIs. Never substitute V1 SDKs.
 - Create a local checkpoint after a coherent, validated authorized change. Do not
   rewrite history or discard unrelated work. Push, release, or publish only when
   explicitly authorized. npm publication is manual, uses trusted publishing, and

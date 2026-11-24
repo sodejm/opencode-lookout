@@ -68,10 +68,10 @@
     "jsonc-parser": "3.3.1"
   },
   "peerDependencies": {
-    "@opencode/plugin": ">=2.2.1 <=2.2.6",
-    "@opentui/core": "^0.8.0",
-    "@opentui/solid": "^0.8.0",
-    "solid-js": "^1.9.0"
+    "@opencode/plugin": ">=2.2.1 <=2.4.1",
+    "@opentui/core": "^0.9.9",
+    "@opentui/solid": "^0.9.9",
+    "solid-js": "^1.9.16"
   },
   "peerDependenciesMeta": {
     "@opencode/plugin": {
@@ -88,27 +88,27 @@
     }
   },
   "overrides": {
-    "glob@>=9 <=14.0.1": "14.0.3",
-    "minimatch@>=7 <11.0.1": "11.0.4"
+    "glob@>=9 <=14.0.6": "14.0.6",
+    "minimatch@>=7 <11.0.9": "11.0.9"
   },
   "devDependencies": {
-    "@babel/core": "7.29.7",
-    "@babel/preset-typescript": "7.27.1",
+    "@babel/core": "7.29.13",
+    "@babel/preset-typescript": "7.29.7",
     "@types/babel__core": "7.20.5",
-    "babel-preset-solid": "1.9.16",
+    "babel-preset-solid": "1.9.19",
     "@eslint/js": "10.0.1",
-    "@opencode/client": "2.2.5",
-    "@opencode/plugin": "2.2.5",
-    "@opencode/theme": "2.2.5",
-    "@opentui/core": "0.8.0",
-    "@opentui/solid": "0.8.0",
+    "@opencode/client": "2.4.1",
+    "@opencode/plugin": "2.4.1",
+    "@opencode/theme": "2.4.1",
+    "@opentui/core": "0.9.9",
+    "@opentui/solid": "0.9.9",
     "@types/node": "26.6.6",
-    "eslint": "10.14.0",
-    "eslint-plugin-jsdoc": "65.4.3",
+    "eslint": "10.15.0",
+    "eslint-plugin-jsdoc": "65.5.3",
     "globals": "17.14.0",
-    "prettier": "3.9.10",
+    "prettier": "3.10.1",
     "solid-js": "1.9.16",
-    "typescript": "5.9.3",
-    "typescript-eslint": "8.72.1"
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.74.0"
   }
 }

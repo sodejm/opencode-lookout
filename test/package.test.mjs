@@ -11,7 +11,7 @@ test("npm artifact contains only runtime code and public documentation", async (
   assert.deepEqual(manifest.dependencies, { "jsonc-parser": "3.3.1" });
   assert.equal(
     manifest.peerDependencies["@opencode/plugin"],
-    ">=2.2.1 <=2.2.6",
+    ">=2.2.1 <=2.4.1",
   );
   for (const name of ["@opencode/plugin", "solid-js"])
     assert.equal(manifest.peerDependenciesMeta[name].optional, true);

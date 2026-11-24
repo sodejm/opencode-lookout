@@ -6,10 +6,10 @@ unrelated cleanup separate. Contributions are licensed under [MIT](LICENSE).
 
 ## Set up
 
-Use Node.js 26.4.0+ and npm for development, as required by OpenTUI 0.8.0.
-Use npm 11 or later to install the lockfile. npm 10 misresolves the patched
+Use Node.js 26.4.0+ and npm for development, as required by OpenTUI 0.9.9.
+Use npm 12 or later to install the lockfile. npm 10 misresolves the patched
 override graph and rejects `npm ci`; do not remove the overrides to work around it.
-Runtime CI installs with npm 11.19.1 while still running tests on Node 22 and 24.
+Runtime CI installs with npm 12.2.3 while still running tests on Node 22 and 24.
 `make check` also installs and audits the packed artifact in a temporary consumer
 directory. It requires registry access and fails closed on registry errors.
 After editing `src/tui.tsx`, run `npm run build` and review `dist/tui.js` alongside
@@ -19,7 +19,7 @@ same artifact without installing build tools. It remains security-scanned.
 Development uses Node 26 declarations. Do not assume a type-checked Node API is
 available to the offline CLI on Node 22; its production-only runtime tests remain required.
 The offline CLI retains Node.js 22+ support with production
-dependencies only. OpenCode 2.2.5 is needed only for live integration
+dependencies only. OpenCode 2.4.1 is needed only for live integration
 tests. The optional terminal harness needs `/usr/bin/expect` (macOS or Linux).
 
 ```sh
