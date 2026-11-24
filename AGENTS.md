@@ -4,6 +4,13 @@ Read README.md and CONTRIBUTING.md before editing. Inspect branch, worktree, and
 local changes; preserve unrelated work. Do not copy personal OpenCode configuration,
 credentials, transcripts, or machine-specific paths into this repository.
 
+## Agent guidance format
+
+This repository adopts [AGENTS.md](https://aaif.io/projects/agents-md), the simple,
+open format for guiding coding agents stewarded by the Agentic AI Foundation (AAIF).
+Keep this project-local guidance concise, actionable, and aligned with README.md and
+CONTRIBUTING.md; adoption does not imply AAIF affiliation or endorsement.
+
 - Keep the change focused. Preserve the `opencode-lookout` plugin/RPC ID,
   `/lookout` command, recovery CLI, storage keys, and `lookout:` markers unless
   the maintainer explicitly approves a migration.
