@@ -16,19 +16,25 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repository = fileURLToPath(new URL("../", import.meta.url));
 const root = await realpath(await mkdtemp(join(tmpdir(), "lookout-packed-")));
+const packedArtifact = (name) => {
+  const report = JSON.parse(
+    execFileSync(
+      "npm",
+      ["pack", "--json", "--ignore-scripts", "--pack-destination", root],
+      { cwd: repository, encoding: "utf8" },
+    ),
+  );
+  const pack = Array.isArray(report) ? report[0] : report[name];
+  assert.ok(
+    pack?.filename,
+    "npm pack report must include the artifact filename",
+  );
+  return pack;
+};
 try {
   const tarball = process.argv[2]
     ? resolve(process.argv[2])
-    : join(
-        root,
-        JSON.parse(
-          execFileSync(
-            "npm",
-            ["pack", "--json", "--ignore-scripts", "--pack-destination", root],
-            { cwd: repository, encoding: "utf8" },
-          ),
-        )[0].filename,
-      );
+    : join(root, packedArtifact("opencode-lookout").filename);
   const prefix = join(root, "consumer");
   await mkdir(prefix);
   // No root overrides: npm does not apply a dependency's overrides to consumers.

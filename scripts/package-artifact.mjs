@@ -6,7 +6,7 @@ import { output } from "./release-io.mjs";
  * @returns {{filename:string, integrity:string}} Validated npm pack metadata.
  */
 export function packageArtifact(directory) {
-  const [pack] = JSON.parse(
+  const report = JSON.parse(
     output("npm", [
       "pack",
       "--ignore-scripts",
@@ -14,6 +14,7 @@ export function packageArtifact(directory) {
       ...(directory ? ["--pack-destination", directory] : ["--dry-run"]),
     ]),
   );
+  const [pack] = Array.isArray(report) ? report : Object.values(report);
   if (
     !/^opencode-lookout-\d+\.\d+\.\d+\.tgz$/.test(pack?.filename ?? "") ||
     !/^sha512-[A-Za-z0-9+/]{86}==$/.test(pack?.integrity ?? "")
