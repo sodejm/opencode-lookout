@@ -39,7 +39,7 @@ jobs:
           build-mode: none
           queries: security-and-quality
       - name: Analyze and upload security results
-        uses: github/codeql-action/analyze@800a1d8701a65d150a672fef0923dbf2660a62ec # v4
+        uses: github/codeql-action/analyze@776237d428f23fefc3d9e0fe1962921cbcd53e17 # v4
         with:
           category: /language:${{ matrix.language }}
           output: ${{ runner.temp }}/lookout-sarif
