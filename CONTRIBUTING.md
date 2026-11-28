@@ -87,9 +87,19 @@ hosts. No editor task loads the plugin into personal configuration.
 
 ## Dependency remediation
 
-The lockfile overrides vulnerable `glob` 9–14.0.1 with 14.0.3 and `minimatch`
-7–11.0.0 with 11.0.4. These major-version overrides address
+The lockfile pins `glob` requests from 9 through 14.0.6 to 14.0.6 and
+`minimatch` requests from 7 below 11.0.9 to 11.0.9. These overrides address
 GHSA-3g3m-2fjr-6pw4 and GHSA-g3hv-75wg-m249; they are not severity waivers.
 Older unaffected majors are not replaced. `make check` and actual server/TUI
 integration must pass after each override change. Remove an override only when
 the upstream graph resolves patched versions and the full checks still pass.
+
+Dependabot groups CodeQL initialization and analysis so both steps use the same
+release. Keep their immutable commit pins synchronized.
+
+Major updates for Solid, Babel, and TypeScript are deferred until their peers
+support them: `@opentui/solid` 0.9.9 requires Solid 1, `babel-preset-solid` 1.9.19
+requires Babel 7, and `typescript-eslint` 8.74.0 requires TypeScript below 6.1.
+Remove the corresponding Dependabot major-update ignore when compatible peers
+are available and the full checks pass. Patch and minor updates remain enabled.
+The supported OpenCode API boundary remains 2.4.1.

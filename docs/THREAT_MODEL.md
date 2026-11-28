@@ -174,3 +174,9 @@ dots indicate catalog availability, not successful authentication or execution.
 The owner of this local installation owns these residual risks. Human review is
 pending; test results are not human approval. Recheck this model when adding
 resource kinds, file targets, credential access, or remote management.
+
+The November 2026 dependency maintenance keeps the runtime API, RPC authority,
+storage, and recovery behavior unchanged. Compatible development-tool patches and
+synchronized CodeQL pins retain disabled install scripts and existing security
+gates. Major upgrades blocked by peer requirements remain deferred rather than
+bypassing dependency resolution.

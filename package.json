@@ -92,8 +92,8 @@
     "minimatch@>=7 <11.0.9": "11.0.9"
   },
   "devDependencies": {
-    "@babel/core": "7.29.13",
-    "@babel/preset-typescript": "7.29.7",
+    "@babel/core": "7.29.16",
+    "@babel/preset-typescript": "7.29.16",
     "@types/babel__core": "7.20.5",
     "babel-preset-solid": "1.9.19",
     "@eslint/js": "10.0.1",
@@ -102,12 +102,12 @@
     "@opencode/theme": "2.4.1",
     "@opentui/core": "0.9.9",
     "@opentui/solid": "0.9.9",
-    "@types/node": "26.6.6",
-    "eslint": "10.15.0",
-    "eslint-plugin-jsdoc": "65.5.3",
+    "@types/node": "26.6.11",
+    "eslint": "10.16.0",
+    "eslint-plugin-jsdoc": "65.5.7",
     "globals": "17.14.0",
     "prettier": "3.10.1",
-    "solid-js": "1.9.16",
+    "solid-js": "1.9.20",
     "typescript": "6.0.3",
     "typescript-eslint": "8.74.0"
   }

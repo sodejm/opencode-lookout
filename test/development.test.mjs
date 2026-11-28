@@ -34,6 +34,17 @@ test("required CodeQL checks come from full branch scans, never PR-only results"
   assert.match(workflow, /node scripts\/check-codeql\.mjs/);
 });
 
+test("CodeQL initialization and analysis use the same immutable version", async () => {
+  const workflow = await readFile(".github/workflows/codeql.yml", "utf8");
+  const versions = [
+    ...workflow.matchAll(
+      /uses: github\/codeql-action\/(?:init|analyze)@([a-f0-9]{40})/g,
+    ),
+  ].map((match) => match[1]);
+  assert.equal(versions.length, 2);
+  assert.equal(new Set(versions).size, 1);
+});
+
 test("canonical Lookout names cover ID, ownership, lifecycle, and recovery path", async () => {
   assert.equal(ID, "opencode-lookout");
   assert.match(
